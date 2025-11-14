@@ -54,7 +54,6 @@ class MochaFaqPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Titre façon titre d'article
                 Text(
                   q["question"]!,
                   style: const TextStyle(
