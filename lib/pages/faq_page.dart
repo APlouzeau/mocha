@@ -5,34 +5,27 @@ class MochaFaqPage extends StatelessWidget {
 
   final List<Map<String, String>> questions = const [
     {
-      "question": "Qu'est-ce qu'un espresso ?",
+      "question": "Comment créer un post ?",
       "answer":
-      "Un espresso est un café très concentré obtenu en faisant passer de l'eau chaude sous pression à travers du café finement moulu. "
-          "Il sert souvent de base à d’autres boissons (latte, cappuccino, etc.).",
+      "Pour créer un post, il te suffit d’être connecté au forum. Une fois sur la page principale, utilise le champ de texte situé en bas de l’écran pour écrire ton message, puis appuie sur le bouton “Envoyer”. "
+          "Ton post apparaîtra immédiatement dans la section 'Posts' du forum.",
     },
     {
-      "question": "Quelle est la différence entre un latte et un cappuccino ?",
+      "question": "Pourquoi je ne peux pas supprimer un post ?",
       "answer":
-      "Les deux utilisent du lait, mais le latte contient plus de lait chaud et moins de mousse, alors que le cappuccino a une couche de mousse plus épaisse "
-          "et un goût de café plus marqué.",
+      "La suppression de posts n’est pas possible car chaque message publié reste visible afin de garantir la cohérence des échanges entre les utilisateurs. "
+          "Si tu as publié un message par erreur, n’hésite pas à contacter l’administrateur du forum pour qu’il puisse intervenir.",
     },
     {
-      "question": "Qu'est-ce que la mouture du café ?",
+      "question": "Comment est-ce que je peux créer un topic sur le forum ?",
       "answer":
-      "La mouture correspond à la taille des particules de café une fois les grains moulus. "
-          "Une mouture fine est utilisée pour l’espresso, une mouture plus grosse pour les cafetières filtres ou à piston.",
+      "Les topics sont un outils puissant sur notre forum, qui permet de regrouper ensemble les posts de nombreux utilisateurs sur un même sujet. Seul les membres de l'équipe de modération est capable de les créer ! "
+          "Nous restons toujours attentifs à la popularité des sujets pour créer de nouveaux topics !",
     },
     {
-      "question": "À quoi sert un moulin à café ?",
+      "question": "Comment chercher une info spécifique à un sujet sur le forum ?",
       "answer":
-      "Un moulin à café permet de moudre les grains juste avant la préparation. "
-          "Cela permet de préserver les arômes, qui se perdent rapidement une fois le café moulu.",
-    },
-    {
-      "question": "Pourquoi le café peut-il être amer ?",
-      "answer":
-      "Un café trop amer est souvent lié à une sur-extraction (temps d’infusion trop long), une mouture trop fine ou des grains trop torréfiés. "
-          "Adapter la mouture et le temps d’infusion permet souvent de corriger ça.",
+      "Notre forum dispose d'un agent IA pour t'aider à trouver toutes les infos que tu cherches sur n'importe quel sujet sur notre forum ! ",
     },
   ];
 
