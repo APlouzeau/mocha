@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Page d'accueil "vide" pour Mocha.
-/// Tes collègues pourront venir coder ici plus tard.
-/// Pour l'instant, c'est juste un template de base.
 class MochaHomePage extends StatelessWidget {
   const MochaHomePage({super.key});
 
