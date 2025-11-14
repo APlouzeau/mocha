@@ -55,15 +55,17 @@ class _MochaRootState extends State<MochaRoot> {
   int _currentIndex = 0;
 
   final List<Widget> _pages = const [
-    MochaHomePage(),
-    MochaFaqPage(),
-    PostsPage(),
-    TopicsPage(),
+    MochaHomePage(),    // Accueil
+    MochaFaqPage(),     // FAQ
+    Placeholder(),      // Ajouter
+    PostsPage(),        // Posts
+    TopicsPage(),       // Topics
   ];
 
   final List<String> _pageLabels = const [
     "Accueil",
     "FAQ",
+    "Ajouter", // Creation de post à implémenter
     "Posts",
     "Topics",
   ];
@@ -147,6 +149,10 @@ class _MochaRootState extends State<MochaRoot> {
           BottomNavigationBarItem(
             icon: Icon(Icons.help_outline),
             label: 'FAQ',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add), // Nouveau bouton Add
+            label: 'Poster',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.forum),
