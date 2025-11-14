@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'pages/home_page.dart';
+import 'pages/faq_page.dart';
 
 void main() {
   runApp(const MochaApp());
@@ -11,70 +13,48 @@ class MochaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Mocha - Blog',
+      title: 'Mocha',
       theme: ThemeData(
+        useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF6D4C41),
         ),
-        useMaterial3: true,
         scaffoldBackgroundColor: const Color(0xFFFAF3E7),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF3E2723),
+          backgroundColor: Color(0xFF6D4C41),
           foregroundColor: Colors.white,
-          elevation: 0,
           centerTitle: true,
+          elevation: 0,
           titleTextStyle: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.2,
           ),
         ),
-        cardTheme: const CardThemeData(
-          color: Colors.white,
-          elevation: 1,
-          margin: EdgeInsets.symmetric(vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-        ),
       ),
-      home: const MochaHomePage(),
+      home: const MochaRoot(),
     );
   }
 }
 
-/// Page d’accueil "pré-blog" :
-/// pour l’instant on affiche 5 questions / réponses
-/// comme si c’était des brouillons d’articles.
-class MochaHomePage extends StatelessWidget {
-  const MochaHomePage({super.key});
+class MochaRoot extends StatefulWidget {
+  const MochaRoot({super.key});
 
-  final List<Map<String, String>> questions = const [
-    {
-      'question': "Qu'est-ce qu'un espresso ?",
-      'answer':
-      "Un café très concentré obtenu avec de l'eau chaude sous pression."
-    },
-    {
-      'question': 'Un latte et un cappuccino, différence ?',
-      'answer':
-      'Le latte contient plus de lait, le cappuccino contient plus de mousse.'
-    },
-    {
-      'question': 'C’est quoi la mouture du café ?',
-      'answer':
-      'C’est la taille du grain moulu. Elle doit s’adapter au type de machine.'
-    },
-    {
-      'question': 'À quoi sert un moulin à café ?',
-      'answer':
-      'À moudre les grains juste avant la préparation pour conserver les arômes.'
-    },
-    {
-      'question': 'Pourquoi un café peut être amer ?',
-      'answer':
-      'Souvent à cause d’une sur-extraction ou d’une mouture trop fine.'
-    },
+  @override
+  State<MochaRoot> createState() => _MochaRootState();
+}
+
+class _MochaRootState extends State<MochaRoot> {
+  int _currentIndex = 0;
+
+  final List<Widget> _pages = const [
+    MochaHomePage(),
+    MochaFaqPage(),
+  ];
+
+  final List<String> _pageLabels = const [
+    "Accueil",
+    "FAQ",
   ];
 
   @override
@@ -83,86 +63,56 @@ class MochaHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Mocha'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Mocha',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: const BoxDecoration(
+              color: Color(0xFF6D4C41),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 2,
+                  offset: Offset(0, 2),
+                )
+              ],
+            ),
+            child: Center(
+              child: Text(
+                _pageLabels[_currentIndex],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.1,
+                ),
               ),
             ),
-            const SizedBox(height: 4),
-            const Text(
-              "Mocha le blog des seigneurs",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            const Text(
-              'Brouillons de billets',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-//
-            ListView.builder(
-              itemCount: questions.length,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                final q = questions[index];
-
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          q['question']!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          q['answer']!,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Note #${index + 1}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.black45,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+          ),
+          Expanded(child: _pages[_currentIndex]),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        selectedItemColor: const Color(0xFF6D4C41),
+        unselectedItemColor: Colors.brown.shade300,
+        backgroundColor: const Color(0xFFF2E5D5),
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Accueil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.help_outline),
+            label: 'FAQ',
+          ),
+        ],
       ),
     );
   }
