@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'pages/home_page.dart';
 import 'pages/faq_page.dart';
+import 'pages/login_page.dart';
+import 'pages/posts_page.dart';
+import 'pages/topics_page.dart';
+// import 'assets/mocha_logo_beige.png';
 
 void main() {
   runApp(const MochaApp());
@@ -13,19 +17,22 @@ class MochaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Mocha',
+      title: 'Mocha Forum',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6D4C41),
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF6D4C41),
+          onPrimary: Color(0xFF6D4C41),
+          secondary: Color(0xFFD2B48C),
         ),
-        scaffoldBackgroundColor: const Color(0xFFFAF3E7),
+        scaffoldBackgroundColor: const Color(0xFFF8F0DD),
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF6D4C41),
           foregroundColor: Colors.white,
-          centerTitle: true,
+          centerTitle: true, // à voir placement logo
           elevation: 0,
           titleTextStyle: TextStyle(
+            color: Color(0xFFD2B48C),
             fontSize: 22,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.2,
@@ -50,18 +57,46 @@ class _MochaRootState extends State<MochaRoot> {
   final List<Widget> _pages = const [
     MochaHomePage(),
     MochaFaqPage(),
+    PostsPage(),
+    TopicsPage(),
   ];
 
   final List<String> _pageLabels = const [
     "Accueil",
     "FAQ",
+    "Posts",
+    "Topics",
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mocha'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Image.asset(
+            //   'assets/mocha_logo_beige.png',
+            //   height: 32,
+            // ),
+            const SizedBox(width: 10),
+            const Text('Mocha'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            child: const Text(
+              'Se connecter',
+              style: TextStyle(color: Color(0xFFD2B48C)),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -69,10 +104,10 @@ class _MochaRootState extends State<MochaRoot> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: const BoxDecoration(
-              color: Color(0xFF6D4C41),
+              color: Color.fromARGB(255, 141, 99, 85),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black26,
+                  color: Color(0xFFD2B48C),
                   blurRadius: 2,
                   offset: Offset(0, 2),
                 )
@@ -82,7 +117,7 @@ class _MochaRootState extends State<MochaRoot> {
               child: Text(
                 _pageLabels[_currentIndex],
                 style: const TextStyle(
-                  color: Colors.white,
+                    color: Color(0xFFF8F0DD),
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.1,
@@ -94,10 +129,11 @@ class _MochaRootState extends State<MochaRoot> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
-        selectedItemColor: const Color(0xFF6D4C41),
-        unselectedItemColor: Colors.brown.shade300,
-        backgroundColor: const Color(0xFFF2E5D5),
+        selectedItemColor: const Color(0xFFD2B48C),
+        unselectedItemColor: Color(0xFFF8F0DD),
+        backgroundColor: const Color(0xFF6D4C41),
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -111,6 +147,14 @@ class _MochaRootState extends State<MochaRoot> {
           BottomNavigationBarItem(
             icon: Icon(Icons.help_outline),
             label: 'FAQ',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.forum),
+            label: 'Posts',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.topic),
+            label: 'Topics',
           ),
         ],
       ),
