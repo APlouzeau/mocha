@@ -1,16 +1,61 @@
-# mocha
+# Mocha
 
-A new Flutter project.
+Application Flutter multi-plateforme.
 
-## Getting Started
+## 🚀 Démarrage rapide
 
-This project is a starting point for a Flutter application.
+### Prérequis
 
-A few resources to get you started if this is your first Flutter project:
+-   Flutter SDK (dernière version stable)
+-   Un téléphone Android/iOS avec le débogage USB activé, ou un émulateur
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Installation
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+# Installer les dépendances
+make deps
+
+# Lancer l'app avec hot reload
+make run
+```
+
+## 📱 Commandes disponibles
+
+```bash
+make run          # Lance l'app avec hot reload
+make run-device   # Lance sur un device spécifique (DEVICE=id)
+make devices      # Liste les devices connectés
+make clean        # Nettoie le projet
+make build-apk    # Build APK Android release
+make build-ios    # Build iOS release
+make deps         # Récupère les dépendances
+make help         # Affiche l'aide
+```
+
+## 🛠️ Développement
+
+Pour lancer l'app sur un device spécifique :
+
+```bash
+# Liste les devices disponibles
+make devices
+
+# Lance sur le device choisi
+make run-device DEVICE=<device-id>
+```
+
+Le hot reload est activé automatiquement - modifiez votre code et les changements seront instantanément reflétés sur votre appareil.
+
+## 📦 Build
+
+```bash
+# Android
+make build-apk
+
+# iOS
+make build-ios
+```
+
+## 📄 Licence
+
+Ce projet est sous licence MIT.
