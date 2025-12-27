@@ -39,3 +39,6 @@ help:
 	@echo "  make build-ios    - Build iOS release"
 	@echo "  make devices      - Liste les devices connectés"
 	@echo "  make deps         - Récupère les dépendances"
+
+back:
+	lsof -ti:8080 | xargs kill -9 2>/dev/null; cd /home/alex/projects/flutter/mocha/backend && dart run bin/server.dart
