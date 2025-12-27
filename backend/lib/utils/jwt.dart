@@ -10,8 +10,9 @@ class JwtUtils {
     final jwt = JWT(
       {
         'id': user.id,
-        'username': user.username,
+        'nickName': user.nickName,
         'email': user.email,
+        'roleId': user.roleId,
       },
       issuer: 'mocha_backend',
     );
