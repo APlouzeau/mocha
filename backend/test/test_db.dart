@@ -1,4 +1,3 @@
-// 🧪 FICHIER DE TEST - Pour vérifier que tout fonctionne
 import '../lib/database/db.dart';
 
 void main() async {
