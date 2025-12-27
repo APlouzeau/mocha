@@ -70,7 +70,15 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Inscription')),
+      appBar: AppBar(
+        title: const Text('Inscription'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.popUntil(context, (route) => route.isFirst);
+          },
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -136,6 +144,13 @@ class _RegisterPageState extends State<RegisterPage> {
                       ? const CircularProgressIndicator()
                       : const Text('S\'inscrire'),
                 ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/login');
+                },
+                child: const Text('Déjà un compte ? Se connecter'),
               ),
             ],
           ),

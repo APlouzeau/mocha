@@ -123,10 +123,6 @@ Router authRoutes(Database db) {
         roleId: existingUser.first[3] as int,
         createdAt: DateTime.now(),
       );
-        email: email!,
-        passwordHash: existingUser.first[1] as String,
-        createdAt: DateTime.now(),
-      );
 
       final token = JwtUtils.generateToken(user);
 
@@ -145,6 +141,15 @@ Router authRoutes(Database db) {
         headers: {'Content-Type': 'application/json'},
       );
     }
+  });
+
+  router.post('/logout', (Request request) async {
+    // Pour les JWT, le logout côté serveur est souvent une opération
+    // stateless. On peut simplement informer le client de supprimer le token.
+    return Response.ok(
+      jsonEncode({'message': 'Déconnexion réussie'}),
+      headers: {'Content-Type': 'application/json'},
+    );
   });
 
   return router;

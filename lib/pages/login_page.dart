@@ -45,14 +45,12 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
 
-      // TODO: Sauvegarder le token dans SharedPreferences
       final token = result['token'];
       final user = UserModel.fromJson(result['user']);
       
       await AuthService.saveAuth(token: token, user: user);
 
-      // Navigation vers la home (à adapter selon ton router)
-      // Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/profile');
     } else {
       // Erreur : affiche le message d'erreur
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,7 +65,15 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Inscription')),
+      appBar: AppBar(
+        title: const Text('Connexion'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.popUntil(context, (route) => route.isFirst);
+          },
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -119,6 +125,13 @@ class _LoginPageState extends State<LoginPage> {
                       ? const CircularProgressIndicator()
                       : const Text('Se connecter'),
                 ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/register');
+                },
+                child: const Text('Pas de compte ? S\'inscrire'),
               ),
             ],
           ),

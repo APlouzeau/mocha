@@ -1,5 +1,4 @@
 class ResponseUtils {
-  /// Crée une réponse JSON avec le corps donné et les headers appropriés.
   static Response jsonResponse(Map<String, dynamic> body,
       {int statusCode = 200}) {
     return Response(statusCode,
