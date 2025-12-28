@@ -23,6 +23,7 @@ make run
 
 ```bash
 make run          # Lance l'app avec hot reload
+make back         # Lance le backend de l'app
 make run-device   # Lance sur un device spécifique (DEVICE=id)
 make devices      # Liste les devices connectés
 make clean        # Nettoie le projet

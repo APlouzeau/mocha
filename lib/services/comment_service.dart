@@ -1,22 +1,21 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'base_service.dart';
 
-class AuthService extends BaseService {
+class CommentService extends BaseService {
 
-  static Future<Map<String, dynamic>> register({
-    required String nickName,
-    required String email,
-    required String password,
+  static Future<Map<String, dynamic>> postComment({
+    required String comment,
+    required int article_id,
+    required int user_id,
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('${BaseService.baseUrl}/auth/register'),
+        Uri.parse('${BaseService.baseUrl}/comment/save'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'nickName': nickName,
-          'email': email,
-          'password': password,
+          'comment': comment,
+          'article_id': article_id,
+          'user_id': user_id,
         }),
       );
 
@@ -25,9 +24,7 @@ class AuthService extends BaseService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {
           'success': true,
-          'token': data['token'],
-          'user': data['user'],
-          'message': data['message'],
+          'message': data['message'] ?? 'Commentaire créé avec succès',
         };
       } else {
         return {
@@ -38,22 +35,20 @@ class AuthService extends BaseService {
     } catch (e) {
       return {
         'success': false,
-        'message': 'Erreur de connexion : $e',
+        'message': 'Erreur de connexion au serveur : $e',
       };
     }
   }
 
-  static Future<Map<String, dynamic>> login({
-    required String email,
-    required String password,
+  static Future<Map<String, dynamic>> getComment({
+    required int id,
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('${BaseService.baseUrl}/auth/login'),
+        Uri.parse('${BaseService.baseUrl}/comment/get'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': email,
-          'password': password,
+          'id': id,
         }),
       );
 
@@ -62,20 +57,18 @@ class AuthService extends BaseService {
       if (response.statusCode == 200) {
         return {
           'success': true,
-          'token': data['token'],
-          'user': data['user'],
-          'message': data['message'],
+          'message': data['message'] ?? 'Commentaire récupéré avec succès',
         };
       } else {
         return {
           'success': false,
-          'message': data['error'] ?? 'Identifiants incorrects',
+          'message': data['error'] ?? 'Une erreur est survenue',
         };
       }
     } catch (e) {
       return {
         'success': false,
-        'message': 'Erreur de connexion : $e',
+        'message': 'Erreur de connexion au serveur : $e',
       };
     }
   }

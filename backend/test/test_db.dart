@@ -3,7 +3,7 @@ import '../lib/database/db.dart';
 void main() async {
   print('🧪 Test de connexion à PostgreSQL...\n');
   
-  final success = await Database.testConnection();
+  final success = await Database.connect();
   
   if (success) {
     print('\n✅ Tout fonctionne ! La base de données est prête.');
