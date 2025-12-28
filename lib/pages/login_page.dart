@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mocha/services/api_service.dart';
+import 'package:mocha/services/auth_service.dart';
+import 'package:mocha/helpers/auth_helper.dart';
 import 'package:mocha/models/user_model.dart';
 import 'package:mocha/services/auth_service.dart';
 
@@ -28,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
 
-    final result = await ApiService.login(
+    final result = await AuthService.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
@@ -48,11 +49,10 @@ class _LoginPageState extends State<LoginPage> {
       final token = result['token'];
       final user = UserModel.fromJson(result['user']);
       
-      await AuthService.saveAuth(token: token, user: user);
+      await AuthHelper.saveAuth(token: token, user: user);
 
       Navigator.pushReplacementNamed(context, '/profile');
     } else {
-      // Erreur : affiche le message d'erreur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message'] ?? 'Erreur inconnue'),

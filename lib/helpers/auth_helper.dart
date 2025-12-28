@@ -2,12 +2,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/user_model.dart';
 
-class AuthService {
-  // Clés pour stocker les données
+class AuthHelper {
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
 
-  /// Sauvegarder le token et les infos utilisateur après connexion/inscription
   static Future<void> saveAuth({
     required String token,
     required UserModel user,
@@ -17,13 +15,11 @@ class AuthService {
     await prefs.setString(_userKey, jsonEncode(user.toJson()));
   }
 
-  /// Récupérer le token sauvegardé (null si pas connecté)
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_tokenKey);
   }
 
-  /// Récupérer les infos utilisateur sauvegardées (null si pas connecté)
   static Future<UserModel?> getUser() async {
     final prefs = await SharedPreferences.getInstance();
     final userJson = prefs.getString(_userKey);
@@ -37,13 +33,11 @@ class AuthService {
     }
   }
 
-  /// Vérifier si l'utilisateur est connecté
   static Future<bool> isLoggedIn() async {
     final token = await getToken();
     return token != null;
   }
 
-  /// Déconnexion : supprimer toutes les données sauvegardées
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);

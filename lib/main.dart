@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'pages/home_page.dart';
 import 'pages/faq_page.dart';
 import 'pages/login_page.dart';
@@ -18,7 +19,8 @@ class MochaRoot extends StatefulWidget {
   State<MochaRoot> createState() => _MochaRootState();
 }
 
-void main() {
+Future<void> main() async {
+await dotenv.load();
   runApp(const MochaApp());
 }
 
