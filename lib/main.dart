@@ -4,6 +4,7 @@ import 'pages/faq_page.dart';
 import 'pages/login_page.dart';
 import 'pages/posts_page.dart';
 import 'pages/topics_page.dart';
+import 'pages/create_post_page.dart';
 // import 'assets/mocha_logo_beige.png';
 
 void main() {
@@ -57,7 +58,7 @@ class _MochaRootState extends State<MochaRoot> {
   final List<Widget> _pages = const [
     MochaHomePage(),    // Accueil
     MochaFaqPage(),     // FAQ
-    Placeholder(),      // Ajouter
+    CreatePostPage(),   // Nouveau Post
     PostsPage(),        // Posts
     TopicsPage(),       // Topics
   ];
@@ -65,7 +66,7 @@ class _MochaRootState extends State<MochaRoot> {
   final List<String> _pageLabels = const [
     "Accueil",
     "FAQ",
-    "Ajouter", // Creation de post à implémenter
+    "Nouveau Post",
     "Posts",
     "Topics",
   ];
