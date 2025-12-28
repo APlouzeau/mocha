@@ -1,28 +1,28 @@
-class ArticleModel {
+class Article {
   final int id;
   final String title;
   final String content;
   final int user_id;
   final DateTime created_at;
-
-  ArticleModel({
+  
+  Article({
     required this.id,
     required this.title,
     required this.content,
     required this.user_id,
     required this.created_at,
   });
-
-  factory ArticleModel.fromJson(Map<String, dynamic> json) {
-    return ArticleModel(
-      id: json['id'] as int,
-      title: json['title'] as String,
-      content: json['content'] as String,
-      user_id: json['user_id'] as int,
-      created_at: DateTime.parse(json['created_at'] as String),
+  
+  factory Article.fromMap(Map<String, dynamic> map) {
+    return Article(
+      id: map['id'] as int,
+      title: map['title'] as String,
+      content: map['content'] as String,
+      user_id: map['user_id'] as int,
+      created_at: DateTime.parse(map['created_at'].toString()),
     );
   }
-
+  
   Map<String, dynamic> toJson() {
     return {
       'id': id,

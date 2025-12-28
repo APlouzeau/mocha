@@ -4,6 +4,7 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 import '../lib/database/db.dart';
 import '../lib/routes/auth_routes.dart';
+import '../lib/routes/article_routes.dart';
 
 
 void main() async {
@@ -27,6 +28,7 @@ void main() async {
   });
   
   router.mount('/auth', authRoutes(db).call);
+    router.mount('/article', articleRoutes(db).call);
   
   final handler = Pipeline()
       .addMiddleware(logRequests()) 

@@ -3,19 +3,19 @@ import 'package:http/http.dart' as http;
 
 class ArticleService extends BaseService {
 
-  static Future<Map<String, dynamic>> register({
-    required String nickName,
-    required String email,
-    required String password,
+  static Future<Map<String, dynamic>> postArticle({
+    required String title,
+    required String content,
+    required int user_id,
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('${BaseService.baseUrl}/auth/register'),
+        Uri.parse('${BaseService.baseUrl}/article/save'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'nickName': nickName,
-          'email': email,
-          'password': password,
+          'title': title,
+          'content': content,
+          'user_id': user_id,
         }),
       );
 
@@ -24,9 +24,7 @@ class ArticleService extends BaseService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {
           'success': true,
-          'token': data['token'],
-          'user': data['user'],
-          'message': data['message'],
+          'message': data['message'] ?? 'Article créé avec succès',
         };
       } else {
         return {
@@ -37,22 +35,24 @@ class ArticleService extends BaseService {
     } catch (e) {
       return {
         'success': false,
-        'message': 'Erreur de connexion : $e',
+        'message': 'Erreur de connexion au serveur : $e',
       };
     }
   }
 
-  static Future<Map<String, dynamic>> login({
-    required String email,
-    required String password,
+  static Future<Map<String, dynamic>> getArticle({
+    required String title,
+    required String content,
+    required String user_id,
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('${BaseService.baseUrl}/auth/login'),
+        Uri.parse('${BaseService.baseUrl}/article/get'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': email,
-          'password': password,
+          'title': title,
+          'content': content,
+          'user_id': user_id,
         }),
       );
 
@@ -61,20 +61,18 @@ class ArticleService extends BaseService {
       if (response.statusCode == 200) {
         return {
           'success': true,
-          'token': data['token'],
-          'user': data['user'],
-          'message': data['message'],
+          'message': data['message'] ?? 'Article récupéré avec succès',
         };
       } else {
         return {
           'success': false,
-          'message': data['error'] ?? 'Identifiants incorrects',
+          'message': data['error'] ?? 'Une erreur est survenue',
         };
       }
     } catch (e) {
       return {
         'success': false,
-        'message': 'Erreur de connexion : $e',
+        'message': 'Erreur de connexion au serveur : $e',
       };
     }
   }
