@@ -11,6 +11,7 @@ CREATE TABLE roles (
    role VARCHAR(50) NOT NULL UNIQUE
 );
 
+
 -- Table des utilisateurs
 CREATE TABLE users (
    id SERIAL PRIMARY KEY,
