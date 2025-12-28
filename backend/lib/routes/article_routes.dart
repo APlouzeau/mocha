@@ -68,65 +68,56 @@ Router articleRoutes(Database db) {
     }
   });
 
-/*   router.post('/login', (Request request) async {
+   router.post('/get', (Request request) async {
     try {
       final payload = await request.readAsString();
       final data = jsonDecode(payload) as Map<String, dynamic>;
 
-      final email = data['email'] as String?;
-      final password = data['password'] as String?;
+      final id = data['id'] as int?;
       
-      if (!CheckDataUtils.isValidFields([email, password])) {
+      if (!CheckDataUtils.isValidFields([id])) {
         return Response.badRequest(
-          body: jsonEncode({'error': 'Tous les champs sont requis'}),
+          body: jsonEncode({'error': 'ID requis.'}),
           headers: {'Content-Type': 'application/json'},
         );
       }
 
       final conn = db.connection;
-      final existingUser = await conn.execute(
-        'SELECT id, password_hash, nick_name, role_id FROM users WHERE email = \$1',
-        parameters: [email],
+      final existingArticle = await conn.execute(
+        'SELECT * FROM articles WHERE id = \$1',
+        parameters: [id],
       );
       
-      if (existingUser.isEmpty) {
-        return Response(401,
-          body: jsonEncode({'error': 'Identifiant ou mot de passe incorrect'}),
+      if (existingArticle.isEmpty) {
+        return Response(404,
+          body: jsonEncode({'error': 'Article non trouvé'}),
           headers: {'Content-Type': 'application/json'},
         );
       }
 
-
-      
-
-
-      final user = User(
-        id: existingUser.first[0] as int,
-        nickName: existingUser.first[2] as String,
-        email: email!,
-        passwordHash: existingUser.first[1] as String,
-        roleId: existingUser.first[3] as int,
-        createdAt: DateTime.now(),
+      final article = Article(
+        id: existingArticle.first[0] as int,
+        title: existingArticle.first[1] as String,
+        content: existingArticle.first[2] as String,
+        user_id: existingArticle.first[3] as int,
+        created_at: existingArticle.first[4] as DateTime,
       );
-
-      final token = JwtUtils.generateToken(user);
 
       return Response.ok(
         jsonEncode({
-          'message': 'Connexion réussie',
-          'token': token,
-          'user': user.toJson(),
+          'message': 'Article récupéré avec succès',
+          'article': article.toJson(),
         }),
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {
-      print('Error in /login: $e');
+      print('Error in /get: $e');
       return Response.internalServerError(
-        body: jsonEncode({'error': 'Erreur lors de la connexion'}),
+        body: jsonEncode({'error': 'Erreur lors de la récupération de l\'article'}),
         headers: {'Content-Type': 'application/json'},
       );
     }
-  }); */
+  }); 
 
   return router;
 }
