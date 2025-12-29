@@ -5,7 +5,6 @@ import 'pages/faq_page.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
 import 'pages/posts_page.dart';
-import 'pages/topics_page.dart';
 import 'pages/profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -100,7 +99,6 @@ class _MochaRootState extends State<MochaRoot> {
     const MochaFaqPage(),
     if (_isLoggedIn) const CreatePostPage(),
     const PostsPage(),
-    const TopicsPage(),
   ];
 
   List<String> get _pageLabels => [
@@ -108,7 +106,6 @@ class _MochaRootState extends State<MochaRoot> {
     "FAQ",
     if (_isLoggedIn) "Nouveau Post",
     "Posts",
-    "Topics",
   ];
 
   @override
@@ -222,10 +219,6 @@ class _MochaRootState extends State<MochaRoot> {
           const BottomNavigationBarItem(
             icon: Icon(Icons.forum),
             label: 'Posts',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.topic),
-            label: 'Topics',
           ),
         ],
       ),
