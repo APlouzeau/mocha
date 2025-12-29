@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'base_service.dart';
 
 class CommentService extends BaseService {
 
