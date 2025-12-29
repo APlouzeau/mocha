@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'pages/home_page.dart';
 import 'pages/faq_page.dart';
 import 'pages/login_page.dart';
@@ -8,7 +9,6 @@ import 'pages/posts_page.dart';
 import 'pages/topics_page.dart';
 import 'pages/profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 // import 'assets/mocha_logo_beige.png';
 
@@ -20,7 +20,7 @@ class MochaRoot extends StatefulWidget {
 }
 
 Future<void> main() async {
-await dotenv.load();
+  await dotenv.load();
   runApp(const MochaApp());
 }
 
@@ -32,6 +32,13 @@ class MochaApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Mocha Forum',
+      locale: const Locale('fr'),
+      supportedLocales: const [Locale('fr')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: const ColorScheme.light(
@@ -64,19 +71,20 @@ class MochaApp extends StatelessWidget {
 }
 
 class _MochaRootState extends State<MochaRoot> {
-    Future<void> _logout() async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('user_data');
-      setState(() {
-        _isLoggedIn = false;
-        _currentIndex = 0;
-      });
-    }
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_data');
+    setState(() {
+      _isLoggedIn = false;
+      _currentIndex = 0;
+    });
+  }
+  
+  Future<void> _handleLoginResult() async {
+    await _checkLoginStatus();
+    setState(() {});
+  }
 
-    Future<void> _handleLoginResult() async {
-      await _checkLoginStatus();
-      setState(() {});
-    }
   bool _isLoggedIn = false;
   int _currentIndex = 0;
 
@@ -160,7 +168,7 @@ class _MochaRootState extends State<MochaRoot> {
               ),
               onPressed: _logout,
             ),
-          ]
+          ],
         ],
       ),
       body: Column(
@@ -175,14 +183,14 @@ class _MochaRootState extends State<MochaRoot> {
                   color: Color(0xFFD2B48C),
                   blurRadius: 2,
                   offset: Offset(0, 2),
-                )
+                ),
               ],
             ),
             child: Center(
               child: Text(
                 _pageLabels[_currentIndex],
                 style: const TextStyle(
-                    color: Color(0xFFF8F0DD),
+                  color: Color(0xFFF8F0DD),
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.1,
