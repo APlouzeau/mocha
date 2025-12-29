@@ -12,7 +12,6 @@ class AuthService extends BaseService {
     try {
       final response = await http.post(
         Uri.parse('${BaseService.baseUrl}/auth/register'),
-        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'nickName': nickName,
           'email': email,

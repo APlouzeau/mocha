@@ -119,5 +119,45 @@ Router articleRoutes(Database db) {
     }
   }); 
 
+router.post('/getallposts', (Request request) async {
+    try {
+      final conn = db.connection;
+      final existingArticle = await conn.execute(
+        'SELECT * FROM articles',
+      );
+      
+      if (existingArticle.isEmpty) {
+        return Response(404,
+          body: jsonEncode({'error': 'Aucun article trouvé'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+final articles = existingArticle.map((row) {
+  return Article(
+    id: row[0] as int,
+    title: row[1] as String,
+    content: row[2] as String,
+    user_id: row[3] as int,
+    created_at: row[4] as DateTime,
+  );
+}).toList();
+
+return Response(
+  200,
+  body: jsonEncode(
+    articles.map((a) => a.toJson()).toList(),
+  ),
+  headers: {'Content-Type': 'application/json'},
+);
+    } catch (e) {
+      print('Error in /get: $e');
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Erreur lors de la récupération de l\'article'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  }); 
+
   return router;
 }
