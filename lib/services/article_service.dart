@@ -11,7 +11,7 @@ class ArticleService extends BaseService {
     try {
       final response = await http.post(
         Uri.parse('${BaseService.baseUrl}/article/save'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await BaseService.authHeaders(),
         body: jsonEncode({
           'title': title,
           'content': content,

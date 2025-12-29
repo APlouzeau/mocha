@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../helpers/auth_helper.dart';
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -12,8 +13,8 @@ class ProfilPage extends StatefulWidget {
 class _ProfilPageState extends State<ProfilPage> {
   String? nickName;
   String? email;
-  String? roleId;
-  String? createdAt;
+  int? roleId;
+  DateTime? createdAt;
   bool isLoading = true;
 
   @override
@@ -23,16 +24,21 @@ class _ProfilPageState extends State<ProfilPage> {
   }
 
   Future<void> _loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString('user_data');
-    if (userJson != null && userJson.isNotEmpty) {
-      try {
-        final map = jsonDecode(userJson) as Map<String, dynamic>;
-        setState(() {
-          nickName = map['nickName']?.toString();
-          email = map['email']?.toString();
-          roleId = map['roleId']?.toString();
-          createdAt = map['createdAt']?.toString();
+    final user = await AuthHelper.getUser();
+
+    if (!mounted) return;
+
+    if (user == null) {
+      Navigator.pushReplacementNamed(context, '/login');
+    return;
+}
+
+    try {
+      setState(() {
+          nickName = user.nickName;
+          email = user.email;
+          roleId = user.roleId;
+          createdAt = user.createdAt;
           isLoading = false;
         });
       } catch (e) {
@@ -40,11 +46,6 @@ class _ProfilPageState extends State<ProfilPage> {
           isLoading = false;
         });
       }
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-    }
   }
 
   @override
