@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'base_service.dart';
 
-class ArticleService extends BaseService {
+class UnauthorizedException implements Exception {}
 
+class ArticleService {
   static Future<Map<String, dynamic>> postArticle({
     required String title,
     required String content,
@@ -75,6 +78,41 @@ class ArticleService extends BaseService {
         'success': false,
         'message': 'Erreur de connexion au serveur : $e',
       };
+    }
+  }
+
+  // Ajoute cette méthode à la classe ArticleService (ou en tant que fonction utilitaire)
+  static Future<void> createArticle(String title, String content) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user_data');
+    if (userJson == null || userJson.isEmpty) {
+      throw UnauthorizedException();
+    }
+    final token = jsonDecode(userJson)['token'] as String?;
+    if (token == null || token.isEmpty) {
+      throw UnauthorizedException();
+    }
+
+    final base = dotenv.env['API_URL'] ?? 'http://localhost:8080';
+    final uri = Uri.parse('$base/articles');
+
+    final resp = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'title': title,
+        'content': content,
+      }),
+    );
+
+    if (resp.statusCode == 401) {
+      throw UnauthorizedException();
+    }
+    if (resp.statusCode != 201 && resp.statusCode != 200) {
+      throw Exception('Erreur serveur (${resp.statusCode}): ${resp.body}');
     }
   }
 }
