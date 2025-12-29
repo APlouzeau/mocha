@@ -15,6 +15,9 @@ Application Flutter multi-plateforme.
 # Installer les dépendances
 make deps
 
+# Configurer la base de données (première fois uniquement)
+cp .env.example .env  # Puis modifiez les variables si nécessaire
+
 # Lancer l'app avec hot reload
 make run
 ```
@@ -22,6 +25,7 @@ make run
 ## 📱 Commandes disponibles
 
 ```bash
+# Application
 make run          # Lance l'app avec hot reload
 make back         # Lance le backend de l'app
 make run-device   # Lance sur un device spécifique (DEVICE=id)
@@ -31,6 +35,7 @@ make build-apk    # Build APK Android release
 make build-ios    # Build iOS release
 make deps         # Récupère les dépendances
 make help         # Affiche l'aide
+make db-create POSTGRES_DB=mocha_db POSTGRES_USER=mocha_user POSTGRES_PASSWORD=mocha_password POSTGRES_PORT=5432 # Créer le docker de la bdd (remplacer par vos valeurs .env)
 ```
 
 ## 🛠️ Développement
@@ -47,7 +52,7 @@ make run-device DEVICE=<device-id>
 
 Le hot reload est activé automatiquement - modifiez votre code et les changements seront instantanément reflétés sur votre appareil.
 
-## 📦 Build
+##  Build
 
 ```bash
 # Android
