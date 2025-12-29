@@ -41,4 +41,4 @@ help:
 	@echo "  make deps         - Récupère les dépendances"
 
 back:
-	lsof -ti:8080 | xargs kill -9 2>/dev/null; cd /home/alex/projects/flutter/mocha/backend && dart run bin/server.dart
+	lsof -ti:8080 | xargs kill -9 2>/dev/null; dart run backend/bin/server.dart

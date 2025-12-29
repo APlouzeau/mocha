@@ -11,6 +11,7 @@ CREATE TABLE roles (
    role VARCHAR(50) NOT NULL UNIQUE
 );
 
+
 -- Table des utilisateurs
 CREATE TABLE users (
    id SERIAL PRIMARY KEY,
@@ -48,6 +49,76 @@ INSERT INTO roles (role) VALUES
    ('user'),
    ('moderator'),
    ('admin');
+
+   INSERT INTO articles (title, content, user_id, created_at)
+VALUES (
+  'Les secrets du café',
+  'Du grain à la tasse, chaque étape influence le goût du café : origine, torréfaction, mouture et extraction.',
+  1,
+  NOW()
+),(
+  'Le mythe du café trop fort',
+  'Un café plus sombre n est pas forcément plus fort : il contient souvent moins de caféine qu une torréfaction claire.',
+  2,
+  NOW()
+),(
+  'Pourquoi le café sent si bon ?',
+  'Les arômes du café proviennent de centaines de composés libérés pendant la torréfaction, proches de ceux du chocolat.',
+  1,
+  NOW()
+),
+(
+  'Expresso vs café filtre',
+  'L expresso utilise une forte pression et une extraction courte. Le filtre, lui, donne une boisson plus douce et aromatique.',
+  2,
+  NOW()
+),
+(
+  'Le mythe du café trop fort',
+  'Un café plus sombre n est pas forcément plus fort : il contient souvent moins de caféine qu une torréfaction claire.',
+  2,
+  NOW()
+),(
+  'Comment conserver son café',
+  'Le café aime l obscurité, un contenant hermétique et une température stable. Évite le frigo et le congélateur.',
+  3,
+  NOW()
+);
+
+INSERT INTO comments (comment, article_id, user_id, created_at)
+VALUES (
+  'Un beau commentaire sur le café !',
+  8,
+  1,
+  NOW()
+),(
+  'Un autre beau commentaire sur le café !',
+  8,
+  1,
+  NOW()
+),(
+  'Un très beau commentaire sur le café !',
+  8,
+  1,
+  NOW()
+),
+(
+  'Un laid commentaire sur le café !',
+  8,
+  1,
+  NOW()
+),
+(
+  'Le café est délicieux !',
+  10,
+  1,
+  NOW()
+),(
+  'Rrrrr!',
+  10,
+  1,
+  NOW()
+);
 
 -- Index pour améliorer les performances
 CREATE INDEX idx_users_email ON users(email);

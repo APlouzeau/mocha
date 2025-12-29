@@ -4,21 +4,18 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
 import '../lib/database/db.dart';
 import '../lib/routes/auth_routes.dart';
+import '../lib/routes/article_routes.dart';
+import '../lib/routes/comment_routes.dart';
 
 
 void main() async {
   final db = Database();
   await db.connect();
   print('✅ Base de données connectée');
-  
+
   final port = int.parse(Platform.environment['PORT'] ?? '8080');
-  
   final router = Router();
-  
-  router.get('/hello', (Request request) {
-    return Response.ok('Hello from Mocha Backend! 🎉');
-  });
-  
+
   router.get('/status', (Request request) {
     return Response.ok(
       '{"status": "running", "message": "Mocha API is alive"}',
@@ -27,6 +24,8 @@ void main() async {
   });
   
   router.mount('/auth', authRoutes(db).call);
+  router.mount('/article', articleRoutes(db).call);
+  router.mount('/comment', commentRoutes(db).call);
   
   final handler = Pipeline()
       .addMiddleware(logRequests()) 

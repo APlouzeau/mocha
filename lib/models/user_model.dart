@@ -13,7 +13,6 @@ class UserModel {
     required this.createdAt,
   });
 
-  /// Crée un UserModel à partir du JSON reçu du backend
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as int,
@@ -24,7 +23,6 @@ class UserModel {
     );
   }
 
-  /// Convertit le UserModel en JSON (utile pour le stockage local)
   Map<String, dynamic> toJson() {
     return {
       'id': id,

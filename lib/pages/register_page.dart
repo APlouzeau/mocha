@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mocha/services/api_service.dart';
+import 'package:mocha/services/auth_service.dart';
+import 'package:mocha/helpers/auth_helper.dart';
 import 'package:mocha/models/user_model.dart';
 import 'package:mocha/services/auth_service.dart';
 
@@ -30,7 +31,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() => _isLoading = true);
 
-    final result = await ApiService.register(
+    final result = await AuthService.register(
       nickName: _nickNameController.text.trim(),
       email: _emailController.text.trim(),
       password: _passwordController.text,
@@ -41,7 +42,6 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!mounted) return;
 
     if (result['success']) {
-      // Succès : affiche un message et navigue
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message'] ?? 'Inscription réussie !'),
@@ -52,12 +52,9 @@ class _RegisterPageState extends State<RegisterPage> {
       final token = result['token'];
       final user = UserModel.fromJson(result['user']);
       
-      await AuthService.saveAuth(token: token, user: user);
+      await AuthHelper.saveAuth(token: token, user: user);
 
-      // Navigation vers la home (à adapter selon ton router)
-      // Navigator.pushReplacementNamed(context, '/home');
     } else {
-      // Erreur : affiche le message d'erreur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message'] ?? 'Erreur inconnue'),
