@@ -9,6 +9,7 @@ import 'pages/topics_page.dart';
 import 'pages/profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'pages/create_post_page.dart';
 
 // import 'assets/mocha_logo_beige.png';
 
@@ -97,7 +98,7 @@ class _MochaRootState extends State<MochaRoot> {
   List<Widget> get _pages => [
     const MochaHomePage(),
     const MochaFaqPage(),
-    if (_isLoggedIn) const Placeholder(), // Ajouter (Poster)
+    if (_isLoggedIn) const CreatePostPage(),
     const PostsPage(),
     const TopicsPage(),
   ];
@@ -105,7 +106,7 @@ class _MochaRootState extends State<MochaRoot> {
   List<String> get _pageLabels => [
     "Accueil",
     "FAQ",
-    if (_isLoggedIn) "Ajouter",
+    if (_isLoggedIn) "Nouveau Post",
     "Posts",
     "Topics",
   ];
