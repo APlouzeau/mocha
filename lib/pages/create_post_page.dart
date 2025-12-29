@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/article_service.dart';
 import 'login_page.dart';
+import '../helpers/auth_helper.dart';
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
@@ -13,25 +14,36 @@ class _CreatePostPageState extends State<CreatePostPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleCtrl = TextEditingController();
   final _contentCtrl = TextEditingController();
+  final _userIdCtrl = TextEditingController();
   bool _submitting = false;
 
   @override
   void dispose() {
     _titleCtrl.dispose();
     _contentCtrl.dispose();
+    _userIdCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final user = await AuthHelper.getUser();
+
+    if (!mounted) return;
+
+    if (user == null) {
+      Navigator.pushReplacementNamed(context, '/login');
+    return;
+    }
+
     setState(() => _submitting = true);
     try {
-      await ArticleService.createArticle(
-        _titleCtrl.text.trim(),
-        _contentCtrl.text.trim(),
-      );
-      if (!mounted) return;
+        await ArticleService.postArticle(
+        title: _titleCtrl.text.trim(),
+        content: _contentCtrl.text.trim(),
+        user_id: 1/* int.parse(_userIdCtrl.text.trim()) */,
+    );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Post créé !')),
       );
