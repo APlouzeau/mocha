@@ -45,17 +45,13 @@ class ArticleService {
   }
 
   static Future<Map<String, dynamic>> getArticle({
-    required String title,
-    required String content,
-    required String user_id,
+    required int id,
   }) async {
     try {
       final response = await http.post(
         Uri.parse('${BaseService.baseUrl}/article/get'),
         body: jsonEncode({
-          'title': title,
-          'content': content,
-          'user_id': user_id,
+          'id': id,
         }),
       );
 
@@ -80,38 +76,31 @@ class ArticleService {
     }
   }
 
-  // Ajoute cette méthode à la classe ArticleService (ou en tant que fonction utilitaire)
-  static Future<void> createArticle(String title, String content) async {
-    final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString('user_data');
-    if (userJson == null || userJson.isEmpty) {
-      throw UnauthorizedException();
-    }
-    final token = jsonDecode(userJson)['token'] as String?;
-    if (token == null || token.isEmpty) {
-      throw UnauthorizedException();
-    }
+  static Future<Map<String, dynamic>> getAllArticles({
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${BaseService.baseUrl}/article/getallposts'),
+      );
 
-    final base = dotenv.env['API_URL'] ?? 'http://localhost:8080';
-    final uri = Uri.parse('$base/articles');
+      final data = jsonDecode(response.body);
 
-    final resp = await http.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'title': title,
-        'content': content,
-      }),
-    );
-
-    if (resp.statusCode == 401) {
-      throw UnauthorizedException();
-    }
-    if (resp.statusCode != 201 && resp.statusCode != 200) {
-      throw Exception('Erreur serveur (${resp.statusCode}): ${resp.body}');
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Articles récupérés avec succès',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['error'] ?? 'Une erreur est survenue',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur de connexion au serveur : $e',
+      };
     }
   }
 }
