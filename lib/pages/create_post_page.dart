@@ -26,61 +26,62 @@ class _CreatePostPageState extends State<CreatePostPage> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+Future<void> _submit() async {
+  if (!_formKey.currentState!.validate()) return;
 
-    debugPrint('CreatePost: submit start');
-    final user = await AuthHelper.getUser();
+  final user = await AuthHelper.getUser();
+
+  if (!mounted) return;
+
+  if (user == null) {
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/login');
+    return;
+  }
+
+  setState(() => _submitting = true);
+  try {
+    final res = await ArticleService.postArticle(
+      title: _titleCtrl.text.trim(),
+      content: _contentCtrl.text.trim(),
+      user_id: 1,
+    );
+
+    print('Réponse: $res');
 
     if (!mounted) return;
 
-    if (user == null) {
-      debugPrint('CreatePost: no user -> redirect to login');
-      Navigator.pushReplacementNamed(context, '/login');
+    if (res['success'] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(res['message'] ?? 'Erreur inconnue')),
+      );
       return;
     }
 
-    setState(() => _submitting = true);
-    try {
-      debugPrint('CreatePost: calling ArticleService.postArticle');
-      await ArticleService.postArticle(
-        title: _titleCtrl.text.trim(),
-        content: _contentCtrl.text.trim(),
-        user_id: 1,
-      );
-      debugPrint('CreatePost: postArticle succeeded');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Post créé !')),
+    );
 
-      if (!mounted) return;
+    await Future.delayed(const Duration(milliseconds: 300));
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Post créé !')),
-      );
-
-      // navigation sûre : vérifie si on peut pop
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      } else {
-        // Remplace la route nommée par une navigation directe :
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const PostsPage()),
-        );
-      }
-    } catch (e, st) {
-      debugPrint('CreatePost: error: $e\n$st');
-      if (!mounted) return;
-      if (e is UnauthorizedException) {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage()));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur création post : $e')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _submitting = false);
-      debugPrint('CreatePost: submit end');
+    if (!mounted) return;
+    
+    // ← Vérifie avant de pop
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
     }
+  } on UnauthorizedException {
+    if (!mounted) return;
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erreur création post : $e')),
+    );
+  } finally {
+    if (mounted) setState(() => _submitting = false);
   }
+}
 
   @override
   Widget build(BuildContext context) {
