@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/article_service.dart';
 import 'login_page.dart';
 import '../helpers/auth_helper.dart';
+import 'posts_page.dart';
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
@@ -28,37 +29,56 @@ class _CreatePostPageState extends State<CreatePostPage> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    debugPrint('CreatePost: submit start');
     final user = await AuthHelper.getUser();
 
     if (!mounted) return;
 
     if (user == null) {
+      debugPrint('CreatePost: no user -> redirect to login');
       Navigator.pushReplacementNamed(context, '/login');
-    return;
+      return;
     }
 
     setState(() => _submitting = true);
     try {
-        await ArticleService.postArticle(
+      debugPrint('CreatePost: calling ArticleService.postArticle');
+      await ArticleService.postArticle(
         title: _titleCtrl.text.trim(),
         content: _contentCtrl.text.trim(),
-        user_id: 1/* int.parse(_userIdCtrl.text.trim()) */,
-    );
+        user_id: 1,
+      );
+      debugPrint('CreatePost: postArticle succeeded');
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Post créé !')),
       );
-      Navigator.pop(context); // retourne à la page précédente (posts)
-    } on UnauthorizedException {
-      // redirection vers la page de login si pas connecté
+
+      // navigation sûre : vérifie si on peut pop
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      } else {
+        // Remplace la route nommée par une navigation directe :
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PostsPage()),
+        );
+      }
+    } catch (e, st) {
+      debugPrint('CreatePost: error: $e\n$st');
       if (!mounted) return;
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage()));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur création post : $e')),
-      );
+      if (e is UnauthorizedException) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur création post : $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
+      debugPrint('CreatePost: submit end');
     }
   }
 
