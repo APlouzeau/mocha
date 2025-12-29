@@ -52,7 +52,6 @@ class ArticleService {
     try {
       final response = await http.post(
         Uri.parse('${BaseService.baseUrl}/article/get'),
-        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'title': title,
           'content': content,
