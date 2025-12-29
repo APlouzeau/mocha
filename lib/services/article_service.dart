@@ -51,33 +51,46 @@ static Future<Map<String, dynamic>> postArticle({
     try {
       final response = await http.post(
         Uri.parse('${BaseService.baseUrl}/article/get'),
-        body: jsonEncode({
-          'id': id,
-        }),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id': id}),
       );
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
+        // Cherche une Map représentant l'article dans la réponse
+        Map<String, dynamic>? article;
+        if (data is Map) {
+          if (data['article'] is Map) article = Map<String, dynamic>.from(data['article']);
+          else if (data['data'] is Map) article = Map<String, dynamic>.from(data['data']);
+          else if (data['message'] is Map) article = Map<String, dynamic>.from(data['message']);
+          else {
+            // peut-être la réponse est { "message": "Article récupéré avec succès", "data": { ... } }
+            for (final v in data.values) {
+              if (v is Map) {
+                article = Map<String, dynamic>.from(v);
+                break;
+              }
+            }
+          }
+        } else if (data is List && data.isNotEmpty && data[0] is Map) {
+          article = Map<String, dynamic>.from(data[0]);
+        }
+
         return {
           'success': true,
-          'message': data['message'] ?? 'Article récupéré avec succès',
+          'article': article ?? <String, dynamic>{'title': null, 'content': null},
         };
       } else {
-        return {
-          'success': false,
-          'message': data['error'] ?? 'Une erreur est survenue',
-        };
+        final msg = (data is Map) ? (data['error'] ?? data['message'] ?? 'Une erreur est survenue') : 'Erreur serveur ${response.statusCode}';
+        return {'success': false, 'message': msg};
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Erreur de connexion au serveur : $e',
-      };
+      return {'success': false, 'message': 'Erreur de connexion au serveur : $e'};
     }
   }
 
-  static Future<Map<String, dynamic>> getAllArticles() async {
+  static Future<List<dynamic>> getAllArticles() async {
     try {
       final response = await http.post(
         Uri.parse('${BaseService.baseUrl}/article/getallposts'),
@@ -86,21 +99,63 @@ static Future<Map<String, dynamic>> postArticle({
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'message': data['message'] ?? 'Articles récupérés avec succès',
-        };
+        // si le backend renvoie directement une liste
+        if (data is List) return data;
+        // si le backend emballe la liste dans une clé (data / articles / message)
+        if (data is Map) {
+          if (data['data'] is List) return data['data'];
+          if (data['articles'] is List) return data['articles'];
+          if (data['message'] is List) return data['message'];
+          for (final v in data.values) {
+            if (v is List) return v;
+          }
+          // pas de liste trouvée -> retourner vide
+          return <dynamic>[];
+        }
+        return <dynamic>[];
       } else {
-        return {
-          'success': false,
-          'message': data['error'] ?? 'Une erreur est survenue',
-        };
+        final err = (data is Map) ? data['error'] ?? data['message'] : 'Erreur serveur ${response.statusCode}';
+        throw Exception(err);
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Erreur de connexion au serveur : $e',
-      };
+      throw Exception('Erreur de connexion au serveur : $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getComments({
+    required int articleId,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${BaseService.baseUrl}/comment/getbyarticle'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'article_id': articleId}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        if (data is List) {
+          return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        }
+        if (data is Map) {
+          if (data['comments'] is List) {
+            return (data['comments'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          }
+          if (data['data'] is List) {
+            return (data['data'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          }
+          for (final v in data.values) {
+            if (v is List) return (v as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          }
+        }
+        return <Map<String, dynamic>>[];
+      } else {
+        final err = (data is Map) ? data['error'] ?? data['message'] ?? 'Erreur serveur' : 'Erreur serveur ${response.statusCode}';
+        throw Exception(err);
+      }
+    } catch (e) {
+      throw Exception('Erreur récupération commentaires : $e');
     }
   }
 }
