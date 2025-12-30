@@ -26,8 +26,11 @@ class _PostsPageState extends State<PostsPage> {
       _error = null;
     });
     try {
-      final res = await ArticleService.getAllArticles(); // now returns List<dynamic>
-      setState(() { _articles = res ?? []; });
+      final res =
+          await ArticleService.getAllArticles(); // now returns List<dynamic>
+      setState(() {
+        _articles = res;
+      });
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -41,7 +44,8 @@ class _PostsPageState extends State<PostsPage> {
     if (item == null) return null;
     if (item is int) return item;
     try {
-      if (item is Map) return item['id'] is int ? item['id'] : int.tryParse('${item['id']}');
+      if (item is Map)
+        return item['id'] is int ? item['id'] : int.tryParse('${item['id']}');
       if (item is String) return int.tryParse(item);
       // If it's a model with an id getter
       final v = (item as dynamic).id;
@@ -66,9 +70,7 @@ class _PostsPageState extends State<PostsPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_error != null) {
@@ -79,7 +81,10 @@ class _PostsPageState extends State<PostsPage> {
             children: [
               Text('Erreur: $_error'),
               const SizedBox(height: 12),
-              ElevatedButton(onPressed: _loadArticles, child: const Text('Réessayer')),
+              ElevatedButton(
+                onPressed: _loadArticles,
+                child: const Text('Réessayer'),
+              ),
             ],
           ),
         ),
@@ -102,7 +107,11 @@ class _PostsPageState extends State<PostsPage> {
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 if (id == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Impossible d\'ouvrir le post')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Impossible d\'ouvrir le post'),
+                    ),
+                  );
                   return;
                 }
                 Navigator.push(

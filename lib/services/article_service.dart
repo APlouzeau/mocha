@@ -154,10 +154,11 @@ class ArticleService {
                 .toList();
           }
           for (final v in data.values) {
-            if (v is List)
-              return (v as List)
+            if (v is List) {
+              return v
                   .map((e) => Map<String, dynamic>.from(e as Map))
                   .toList();
+            }
           }
         }
         return <Map<String, dynamic>>[];
