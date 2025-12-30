@@ -136,6 +136,7 @@ class ArticleService {
         body: jsonEncode({'article_id': articleId}),
       );
       final data = jsonDecode(response.body);
+
       print(data);
 
       if (response.statusCode == 200) {
@@ -155,9 +156,7 @@ class ArticleService {
           }
           for (final v in data.values) {
             if (v is List) {
-              return v
-                  .map((e) => Map<String, dynamic>.from(e as Map))
-                  .toList();
+              return v.map((e) => Map<String, dynamic>.from(e as Map)).toList();
             }
           }
         }
