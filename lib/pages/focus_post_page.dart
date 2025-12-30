@@ -117,8 +117,8 @@ class _PostFocusState extends State<PostFocus> {
   Widget _buildCommentItem(Map<String, dynamic> c) {
     // compute author safely (avoid precedence issues)
     final String author;
-    if (c['author'] != null) {
-      author = c['author'].toString();
+    if (c['nick_name'] != null) {
+      author = c['nick_name'].toString();
     } else if (c['user'] is Map) {
       author = (c['user']['username'] ?? c['user']['name'] ?? 'Anonyme')
           .toString();
@@ -128,7 +128,7 @@ class _PostFocusState extends State<PostFocus> {
       author = 'Anonyme';
     }
 
-    final String text = (c['content'] ?? c['text'] ?? c['message'] ?? '')
+    final String text = (c['comment'] ?? c['text'] ?? c['message'] ?? '')
         .toString();
     final timeRaw = c['created_at'] ?? c['createdAt'] ?? c['date'];
     String timeStr = '';
