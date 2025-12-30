@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../services/article_service.dart';
 
@@ -35,16 +34,26 @@ class _PostFocusState extends State<PostFocus> {
     try {
       final res = await ArticleService.getArticle(id: widget.postId);
       if (res['success'] == true) {
-        final Map<String, dynamic> articleMap = (res['article'] is Map) ? Map<String, dynamic>.from(res['article']) : {'title': null, 'content': null};
+        final Map<String, dynamic> articleMap = (res['article'] is Map)
+            ? Map<String, dynamic>.from(res['article'])
+            : {'title': null, 'content': null};
         final title = articleMap['title']?.toString();
-        final content = articleMap['content']?.toString() ?? articleMap['body']?.toString() ?? '';
+        final content =
+            articleMap['content']?.toString() ??
+            articleMap['body']?.toString() ??
+            '';
         // try extract author from common keys
         String? author;
-        if (articleMap['author'] != null) author = articleMap['author'].toString();
+        if (articleMap['author'] != null)
+          author = articleMap['author'].toString();
         else if (articleMap['user'] is Map) {
-          author = articleMap['user']['username']?.toString() ?? articleMap['user']['name']?.toString();
-        } else if (articleMap['user'] != null) author = articleMap['user'].toString();
-        else if (articleMap['author_name'] != null) author = articleMap['author_name'].toString();
+          author =
+              articleMap['user']['username']?.toString() ??
+              articleMap['user']['name']?.toString();
+        } else if (articleMap['user'] != null)
+          author = articleMap['user'].toString();
+        else if (articleMap['author_name'] != null)
+          author = articleMap['author_name'].toString();
 
         setState(() {
           _article = {'title': title, 'content': content};
@@ -82,8 +91,12 @@ class _PostFocusState extends State<PostFocus> {
         final ta = a['created_at'] ?? a['createdAt'] ?? a['date'];
         final tb = b['created_at'] ?? b['createdAt'] ?? b['date'];
         try {
-          final da = DateTime.tryParse(ta?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
-          final db = DateTime.tryParse(tb?.toString() ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final da =
+              DateTime.tryParse(ta?.toString() ?? '') ??
+              DateTime.fromMillisecondsSinceEpoch(0);
+          final db =
+              DateTime.tryParse(tb?.toString() ?? '') ??
+              DateTime.fromMillisecondsSinceEpoch(0);
           return da.compareTo(db);
         } catch (_) {
           return 0;
@@ -107,20 +120,23 @@ class _PostFocusState extends State<PostFocus> {
     if (c['author'] != null) {
       author = c['author'].toString();
     } else if (c['user'] is Map) {
-      author = (c['user']['username'] ?? c['user']['name'] ?? 'Anonyme').toString();
+      author = (c['user']['username'] ?? c['user']['name'] ?? 'Anonyme')
+          .toString();
     } else if (c['user'] != null) {
       author = c['user'].toString();
     } else {
       author = 'Anonyme';
     }
 
-    final String text = (c['content'] ?? c['text'] ?? c['message'] ?? '').toString();
+    final String text = (c['content'] ?? c['text'] ?? c['message'] ?? '')
+        .toString();
     final timeRaw = c['created_at'] ?? c['createdAt'] ?? c['date'];
     String timeStr = '';
     if (timeRaw != null) {
       final dt = DateTime.tryParse(timeRaw.toString());
       if (dt != null) {
-        timeStr = '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+        timeStr =
+            '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
       }
     }
 
@@ -133,7 +149,10 @@ class _PostFocusState extends State<PostFocus> {
           if (timeStr.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 6.0),
-              child: Text(timeStr, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              child: Text(
+                timeStr,
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
             ),
         ],
       ),
@@ -163,7 +182,10 @@ class _PostFocusState extends State<PostFocus> {
             children: [
               Text(title, style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 8),
-              Text('Par ${_authorName ?? 'Auteur inconnu'}', style: TextStyle(color: Colors.grey[700])),
+              Text(
+                'Par ${_authorName ?? 'Auteur inconnu'}',
+                style: TextStyle(color: Colors.grey[700]),
+              ),
               const SizedBox(height: 12),
               Text(content, style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: 20),
@@ -172,13 +194,24 @@ class _PostFocusState extends State<PostFocus> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Commentaires', style: Theme.of(context).textTheme.titleMedium),
-                  if (_loadingComments) const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                  Text(
+                    'Commentaires',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (_loadingComments)
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                 ],
               ),
               const SizedBox(height: 8),
               if (_comments.isEmpty && !_loadingComments)
-                const Text('Aucun commentaire', style: TextStyle(color: Colors.grey)),
+                const Text(
+                  'Aucun commentaire',
+                  style: TextStyle(color: Colors.grey),
+                ),
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/article_service.dart';
 import 'login_page.dart';
 import '../helpers/auth_helper.dart';
-import 'posts_page.dart';
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
@@ -26,62 +25,65 @@ class _CreatePostPageState extends State<CreatePostPage> {
     super.dispose();
   }
 
-Future<void> _submit() async {
-  if (!_formKey.currentState!.validate()) return;
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  final user = await AuthHelper.getUser();
-
-  if (!mounted) return;
-
-  if (user == null) {
-    if (!mounted) return;
-    Navigator.pushReplacementNamed(context, '/login');
-    return;
-  }
-
-  setState(() => _submitting = true);
-  try {
-    final res = await ArticleService.postArticle(
-      title: _titleCtrl.text.trim(),
-      content: _contentCtrl.text.trim(),
-      user_id: 1,
-    );
-
-    print('Réponse: $res');
+    final user = await AuthHelper.getUser();
 
     if (!mounted) return;
 
-    if (res['success'] != true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(res['message'] ?? 'Erreur inconnue')),
-      );
+    if (user == null) {
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/login');
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Post créé !')),
-    );
+    setState(() => _submitting = true);
+    try {
+      final res = await ArticleService.postArticle(
+        title: _titleCtrl.text.trim(),
+        content: _contentCtrl.text.trim(),
+        user_id: 1,
+      );
 
-    await Future.delayed(const Duration(milliseconds: 300));
+      print('Réponse: $res');
 
-    if (!mounted) return;
-    
-    // ← Vérifie avant de pop
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
+      if (!mounted) return;
+
+      if (res['success'] != true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(res['message'] ?? 'Erreur inconnue')),
+        );
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Post créé !')));
+
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!mounted) return;
+
+      // ← Vérifie avant de pop
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+    } on UnauthorizedException {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur création post : $e')));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
-  } on UnauthorizedException {
-    if (!mounted) return;
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage()));
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erreur création post : $e')),
-    );
-  } finally {
-    if (mounted) setState(() => _submitting = false);
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +127,14 @@ Future<void> _submit() async {
                 child: ElevatedButton(
                   onPressed: _submitting ? null : _submit,
                   child: _submitting
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text('Publier'),
                 ),
               ),

@@ -1,53 +1,46 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'base_service.dart';
 
 class UnauthorizedException implements Exception {}
 
 class ArticleService {
-static Future<Map<String, dynamic>> postArticle({
-  required String title,
-  required String content,
-  required int user_id,
-}) async {
-  try {
-    final response = await http.post(
-      Uri.parse('${BaseService.baseUrl}/article/save'),
-      headers: await BaseService.authHeaders()
-        ..addAll({'Content-Type': 'application/json'}),
-      body: jsonEncode({
-        'title': title,
-        'content': content,
-        'user_id': user_id,
-      }),
-    );
+  static Future<Map<String, dynamic>> postArticle({
+    required String title,
+    required String content,
+    required int user_id,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${BaseService.baseUrl}/article/save'),
+        headers: await BaseService.authHeaders()
+          ..addAll({'Content-Type': 'application/json'}),
+        body: jsonEncode({
+          'title': title,
+          'content': content,
+          'user_id': user_id,
+        }),
+      );
 
-    final data = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'data': data};
+      }
+
       return {
-        'success': true,
-        'data': data, 
+        'success': false,
+        'message': data['error'] ?? 'Erreur lors de la création',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur de connexion au serveur : $e',
       };
     }
-
-    return {
-      'success': false,
-      'message': data['error'] ?? 'Erreur lors de la création',
-    };
-  } catch (e) {
-    return {
-      'success': false,
-      'message': 'Erreur de connexion au serveur : $e',
-    };
   }
-}
 
-  static Future<Map<String, dynamic>> getArticle({
-    required int id,
-  }) async {
+  static Future<Map<String, dynamic>> getArticle({required int id}) async {
     try {
       final response = await http.post(
         Uri.parse('${BaseService.baseUrl}/article/get'),
@@ -61,9 +54,12 @@ static Future<Map<String, dynamic>> postArticle({
         // Cherche une Map représentant l'article dans la réponse
         Map<String, dynamic>? article;
         if (data is Map) {
-          if (data['article'] is Map) article = Map<String, dynamic>.from(data['article']);
-          else if (data['data'] is Map) article = Map<String, dynamic>.from(data['data']);
-          else if (data['message'] is Map) article = Map<String, dynamic>.from(data['message']);
+          if (data['article'] is Map)
+            article = Map<String, dynamic>.from(data['article']);
+          else if (data['data'] is Map)
+            article = Map<String, dynamic>.from(data['data']);
+          else if (data['message'] is Map)
+            article = Map<String, dynamic>.from(data['message']);
           else {
             // peut-être la réponse est { "message": "Article récupéré avec succès", "data": { ... } }
             for (final v in data.values) {
@@ -79,14 +75,20 @@ static Future<Map<String, dynamic>> postArticle({
 
         return {
           'success': true,
-          'article': article ?? <String, dynamic>{'title': null, 'content': null},
+          'article':
+              article ?? <String, dynamic>{'title': null, 'content': null},
         };
       } else {
-        final msg = (data is Map) ? (data['error'] ?? data['message'] ?? 'Une erreur est survenue') : 'Erreur serveur ${response.statusCode}';
+        final msg = (data is Map)
+            ? (data['error'] ?? data['message'] ?? 'Une erreur est survenue')
+            : 'Erreur serveur ${response.statusCode}';
         return {'success': false, 'message': msg};
       }
     } catch (e) {
-      return {'success': false, 'message': 'Erreur de connexion au serveur : $e'};
+      return {
+        'success': false,
+        'message': 'Erreur de connexion au serveur : $e',
+      };
     }
   }
 
@@ -114,7 +116,9 @@ static Future<Map<String, dynamic>> postArticle({
         }
         return <dynamic>[];
       } else {
-        final err = (data is Map) ? data['error'] ?? data['message'] : 'Erreur serveur ${response.statusCode}';
+        final err = (data is Map)
+            ? data['error'] ?? data['message']
+            : 'Erreur serveur ${response.statusCode}';
         throw Exception(err);
       }
     } catch (e) {
@@ -132,6 +136,7 @@ static Future<Map<String, dynamic>> postArticle({
         body: jsonEncode({'article_id': articleId}),
       );
       final data = jsonDecode(response.body);
+      print(data);
 
       if (response.statusCode == 200) {
         if (data is List) {
@@ -139,18 +144,27 @@ static Future<Map<String, dynamic>> postArticle({
         }
         if (data is Map) {
           if (data['comments'] is List) {
-            return (data['comments'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+            return (data['comments'] as List)
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList();
           }
           if (data['data'] is List) {
-            return (data['data'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+            return (data['data'] as List)
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList();
           }
           for (final v in data.values) {
-            if (v is List) return (v as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+            if (v is List)
+              return (v as List)
+                  .map((e) => Map<String, dynamic>.from(e as Map))
+                  .toList();
           }
         }
         return <Map<String, dynamic>>[];
       } else {
-        final err = (data is Map) ? data['error'] ?? data['message'] ?? 'Erreur serveur' : 'Erreur serveur ${response.statusCode}';
+        final err = (data is Map)
+            ? data['error'] ?? data['message'] ?? 'Erreur serveur'
+            : 'Erreur serveur ${response.statusCode}';
         throw Exception(err);
       }
     } catch (e) {
