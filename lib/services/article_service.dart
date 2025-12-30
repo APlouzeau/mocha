@@ -131,7 +131,6 @@ static Future<Map<String, dynamic>> postArticle({
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'article_id': articleId}),
       );
-
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
