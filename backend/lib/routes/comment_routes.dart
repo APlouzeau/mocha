@@ -55,7 +55,8 @@ Router commentRoutes(Database db) {
     }
   });
 
-  router.post('/gets', (Request request) async {
+  router.post('/getbyarticle', (Request request) async {
+    print('Received request to /getbyarticle');
     try {
       final payload = await request.readAsString();
       final data = jsonDecode(payload) as Map<String, dynamic>;
