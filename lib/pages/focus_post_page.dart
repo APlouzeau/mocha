@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import '../helpers/auth_helper.dart';
+import '../models/user_model.dart';
 import '../services/article_service.dart';
+import '../services/comment_service.dart';
+import 'login_page.dart';
 
 class PostFocus extends StatefulWidget {
   final int postId;
@@ -17,10 +21,151 @@ class _PostFocusState extends State<PostFocus> {
   List<Map<String, dynamic>> _comments = [];
   bool _loadingComments = true;
 
+  final TextEditingController _commentController = TextEditingController();
+  bool _sendingComment = false;
+  UserModel? _currentUser;
+  bool _showCommentComposer = false;
+
   @override
   void initState() {
     super.initState();
+    _loadCurrentUser();
     _loadArticle();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final user = await AuthHelper.getUser();
+    if (!mounted) return;
+    setState(() {
+      _currentUser = user;
+    });
+  }
+
+  Future<void> _submitComment() async {
+    final user = _currentUser;
+    if (user == null) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+      await _loadCurrentUser();
+      return;
+    }
+
+    final text = _commentController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() => _sendingComment = true);
+    try {
+      final res = await CommentService.postComment(
+        comment: text,
+        article_id: widget.postId,
+        user_id: user.id,
+      );
+
+      if (!mounted) return;
+
+      if (res['success'] == true) {
+        _commentController.clear();
+        setState(() => _showCommentComposer = false);
+        await _loadComments();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(res['message']?.toString() ?? 'Erreur')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _sendingComment = false);
+    }
+  }
+
+  void _cancelComment() {
+    setState(() {
+      _commentController.clear();
+      _showCommentComposer = false;
+    });
+  }
+
+  Widget _buildCommentComposer() {
+    final isLoggedIn = _currentUser != null;
+
+    if (!isLoggedIn) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 12),
+          const Text(
+            'Connecte-toi pour commenter.',
+            style: TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton(
+            onPressed: _submitComment,
+            child: const Text('Se connecter'),
+          ),
+        ],
+      );
+    }
+
+    if (!_showCommentComposer) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: ElevatedButton(
+          onPressed: () => setState(() => _showCommentComposer = true),
+          child: const Text('Commenter'),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        TextField(
+          controller: _commentController,
+          minLines: 4,
+          maxLines: 8,
+          textInputAction: TextInputAction.newline,
+          decoration: const InputDecoration(
+            hintText: 'Écrire un commentaire',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            TextButton(
+              onPressed: _sendingComment ? null : _cancelComment,
+              child: const Text('Annuler'),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: _sendingComment ? null : _submitComment,
+              child:
+                  _sendingComment
+                      ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : const Text('Envoyer'),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Future<void> _loadArticle() async {
@@ -219,6 +364,8 @@ class _PostFocusState extends State<PostFocus> {
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, i) => _buildCommentItem(_comments[i]),
               ),
+
+              _buildCommentComposer(),
             ],
           ),
         ),
