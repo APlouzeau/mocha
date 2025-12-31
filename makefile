@@ -51,5 +51,9 @@ db-create:
 		-e POSTGRES_DB=${POSTGRES_DB} \
 		-e POSTGRES_USER=${POSTGRES_USER} \
 		-e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
-		-p ${DB_PORT}:5432 \
+		-p ${POSTGRES_PORT}:5432 \
 		postgres:15-alpine
+
+# Remplir la base de données
+db-populate:
+	docker exec -i MochaDB psql -U mocha_user -d mocha_db < backend/database_schema.sql
