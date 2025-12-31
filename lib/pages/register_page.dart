@@ -3,32 +3,35 @@ import 'package:mocha/services/auth_service.dart';
 import 'package:mocha/helpers/auth_helper.dart';
 import 'package:mocha/models/user_model.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nickNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
+    _nickNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    final result = await AuthService.login(
+    final result = await AuthService.register(
+      nickName: _nickNameController.text.trim(),
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
@@ -40,7 +43,7 @@ class _LoginPageState extends State<LoginPage> {
     if (result['success']) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result['message'] ?? 'Connexion réussie !'),
+          content: Text(result['message'] ?? 'Inscription réussie !'),
           backgroundColor: Colors.green,
         ),
       );
@@ -49,8 +52,6 @@ class _LoginPageState extends State<LoginPage> {
       final user = UserModel.fromJson(result['user']);
 
       await AuthHelper.saveAuth(token: token, user: user);
-
-      Navigator.pushReplacementNamed(context, '/profile');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -61,10 +62,11 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Connexion'),
+        title: const Text('Inscription'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -79,6 +81,20 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              TextFormField(
+                controller: _nickNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nom d\'utilisateur',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Veuillez entrer un nom d\'utilisateur';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -118,18 +134,18 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleLogin,
+                  onPressed: _isLoading ? null : _handleRegister,
                   child: _isLoading
                       ? const CircularProgressIndicator()
-                      : const Text('Se connecter'),
+                      : const Text('S\'inscrire'),
                 ),
               ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/register');
+                  Navigator.pushNamed(context, '/login');
                 },
-                child: const Text('Pas de compte ? S\'inscrire'),
+                child: const Text('Déjà un compte ? Se connecter'),
               ),
             ],
           ),

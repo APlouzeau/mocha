@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'pages/home_page.dart';
 import 'pages/faq_page.dart';
 import 'pages/login_page.dart';
+import 'pages/register_page.dart';
 import 'pages/posts_page.dart';
-import 'pages/topics_page.dart';
+import 'pages/profile_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'pages/create_post_page.dart';
+
 // import 'assets/mocha_logo_beige.png';
 
-void main() {
+class MochaRoot extends StatefulWidget {
+  const MochaRoot({super.key});
+
+  @override
+  State<MochaRoot> createState() => _MochaRootState();
+}
+
+Future<void> main() async {
+  await dotenv.load();
   runApp(const MochaApp());
 }
 
@@ -39,35 +52,60 @@ class MochaApp extends StatelessWidget {
           ),
         ),
       ),
+      routes: {
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(),
+        '/profile': (context) => const ProfilPage(),
+      },
       home: const MochaRoot(),
     );
   }
 }
 
-class MochaRoot extends StatefulWidget {
-  const MochaRoot({super.key});
-
-  @override
-  State<MochaRoot> createState() => _MochaRootState();
-}
-
 class _MochaRootState extends State<MochaRoot> {
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_data');
+    setState(() {
+      _isLoggedIn = false;
+      _currentIndex = 0;
+    });
+  }
+
+  Future<void> _handleLoginResult() async {
+    await _checkLoginStatus();
+    setState(() {});
+  }
+
+  bool _isLoggedIn = false;
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    MochaHomePage(),    // Accueil
-    MochaFaqPage(),     // FAQ
-    Placeholder(),      // Ajouter
-    PostsPage(),        // Posts
-    TopicsPage(),       // Topics
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user_data');
+    setState(() {
+      _isLoggedIn = userJson != null && userJson.isNotEmpty;
+    });
+  }
+
+  List<Widget> get _pages => [
+    const MochaHomePage(),
+    const MochaFaqPage(),
+    if (_isLoggedIn) const CreatePostPage(),
+    const PostsPage(),
   ];
 
-  final List<String> _pageLabels = const [
+  List<String> get _pageLabels => [
     "Accueil",
     "FAQ",
-    "Ajouter", // Creation de post à implémenter
+    if (_isLoggedIn) "Nouveau Post",
     "Posts",
-    "Topics",
   ];
 
   @override
@@ -86,18 +124,41 @@ class _MochaRootState extends State<MochaRoot> {
           ],
         ),
         actions: [
-          TextButton(
-            child: const Text(
-              'Se connecter',
-              style: TextStyle(color: Color(0xFFD2B48C)),
+          if (!_isLoggedIn)
+            TextButton(
+              child: const Text(
+                'Se connecter',
+                style: TextStyle(color: Color(0xFFD2B48C)),
+              ),
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
+                await _handleLoginResult();
+              },
+            )
+          else ...[
+            TextButton(
+              child: const Text(
+                'Profil',
+                style: TextStyle(color: Color(0xFFD2B48C)),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfilPage()),
+                );
+              },
             ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
-              );
-            },
-          ),
+            TextButton(
+              child: const Text(
+                'Déconnexion',
+                style: TextStyle(color: Color(0xFFD2B48C)),
+              ),
+              onPressed: _logout,
+            ),
+          ],
         ],
       ),
       body: Column(
@@ -112,14 +173,14 @@ class _MochaRootState extends State<MochaRoot> {
                   color: Color(0xFFD2B48C),
                   blurRadius: 2,
                   offset: Offset(0, 2),
-                )
+                ),
               ],
             ),
             child: Center(
               child: Text(
                 _pageLabels[_currentIndex],
                 style: const TextStyle(
-                    color: Color(0xFFF8F0DD),
+                  color: Color(0xFFF8F0DD),
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.1,
@@ -134,33 +195,30 @@ class _MochaRootState extends State<MochaRoot> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         selectedItemColor: const Color(0xFFD2B48C),
-        unselectedItemColor: Color(0xFFF8F0DD),
+        unselectedItemColor: const Color(0xFFF8F0DD),
         backgroundColor: const Color(0xFF6D4C41),
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Accueil',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.help_outline),
             label: 'FAQ',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add), // Nouveau bouton Add
-            label: 'Poster',
-          ),
-          BottomNavigationBarItem(
+          if (_isLoggedIn)
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.add),
+              label: 'Poster',
+            ),
+          const BottomNavigationBarItem(
             icon: Icon(Icons.forum),
             label: 'Posts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.topic),
-            label: 'Topics',
           ),
         ],
       ),
