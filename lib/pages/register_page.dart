@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mocha/services/auth_service.dart';
 import 'package:mocha/helpers/auth_helper.dart';
 import 'package:mocha/models/user_model.dart';
-import 'package:mocha/services/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -51,9 +50,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
       final token = result['token'];
       final user = UserModel.fromJson(result['user']);
-      
-      await AuthHelper.saveAuth(token: token, user: user);
 
+      await AuthHelper.saveAuth(token: token, user: user);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

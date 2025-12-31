@@ -44,6 +44,8 @@ dependencies:
     # Pour gérer les variables d'environnement
     flutter_dotenv: ^5.1.0
 
+    fluttertoast: ^8.2.1
+
 dev_dependencies:
     flutter_test:
         sdk: flutter

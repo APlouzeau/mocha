@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../helpers/auth_helper.dart';
 
 class ProfilPage extends StatefulWidget {
@@ -30,40 +28,38 @@ class _ProfilPageState extends State<ProfilPage> {
 
     if (user == null) {
       Navigator.pushReplacementNamed(context, '/login');
-    return;
-}
+      return;
+    }
 
     try {
       setState(() {
-          nickName = user.nickName;
-          email = user.email;
-          roleId = user.roleId;
-          createdAt = user.createdAt;
-          isLoading = false;
-        });
-      } catch (e) {
-        setState(() {
-          isLoading = false;
-        });
-      }
+        nickName = user.nickName;
+        email = user.email;
+        roleId = user.roleId;
+        createdAt = user.createdAt;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil'),
-      ),
+      appBar: AppBar(title: const Text('Profil')),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Pseudo : ${nickName ?? "-"}') ,
-                  Text('Email : ${email ?? "-"}') ,
-                  Text('Role ID : ${roleId ?? "-"}') ,
-                  Text('Créé le : ${createdAt ?? "-"}') ,
+                  Text('Pseudo : ${nickName ?? "-"}'),
+                  Text('Email : ${email ?? "-"}'),
+                  Text('Role ID : ${roleId ?? "-"}'),
+                  Text('Créé le : ${createdAt ?? "-"}'),
                 ],
               ),
             ),

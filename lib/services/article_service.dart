@@ -1,7 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'base_service.dart';
 
 class UnauthorizedException implements Exception {}
@@ -15,7 +13,8 @@ class ArticleService {
     try {
       final response = await http.post(
         Uri.parse('${BaseService.baseUrl}/article/save'),
-        headers: await BaseService.authHeaders(),
+        headers: await BaseService.authHeaders()
+          ..addAll({'Content-Type': 'application/json'}),
         body: jsonEncode({
           'title': title,
           'content': content,
@@ -26,16 +25,13 @@ class ArticleService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return {
-          'success': true,
-          'message': data['message'] ?? 'Article créé avec succès',
-        };
-      } else {
-        return {
-          'success': false,
-          'message': data['error'] ?? 'Une erreur est survenue',
-        };
+        return {'success': true, 'data': data};
       }
+
+      return {
+        'success': false,
+        'message': data['error'] ?? 'Erreur lors de la création',
+      };
     } catch (e) {
       return {
         'success': false,
@@ -44,33 +40,49 @@ class ArticleService {
     }
   }
 
-  static Future<Map<String, dynamic>> getArticle({
-    required String title,
-    required String content,
-    required String user_id,
-  }) async {
+  static Future<Map<String, dynamic>> getArticle({required int id}) async {
     try {
       final response = await http.post(
         Uri.parse('${BaseService.baseUrl}/article/get'),
-        body: jsonEncode({
-          'title': title,
-          'content': content,
-          'user_id': user_id,
-        }),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id': id}),
       );
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
+        // Cherche une Map représentant l'article dans la réponse
+        Map<String, dynamic>? article;
+        if (data is Map) {
+          if (data['article'] is Map)
+            article = Map<String, dynamic>.from(data['article']);
+          else if (data['data'] is Map)
+            article = Map<String, dynamic>.from(data['data']);
+          else if (data['message'] is Map)
+            article = Map<String, dynamic>.from(data['message']);
+          else {
+            // peut-être la réponse est { "message": "Article récupéré avec succès", "data": { ... } }
+            for (final v in data.values) {
+              if (v is Map) {
+                article = Map<String, dynamic>.from(v);
+                break;
+              }
+            }
+          }
+        } else if (data is List && data.isNotEmpty && data[0] is Map) {
+          article = Map<String, dynamic>.from(data[0]);
+        }
+
         return {
           'success': true,
-          'message': data['message'] ?? 'Article récupéré avec succès',
+          'article':
+              article ?? <String, dynamic>{'title': null, 'content': null},
         };
       } else {
-        return {
-          'success': false,
-          'message': data['error'] ?? 'Une erreur est survenue',
-        };
+        final msg = (data is Map)
+            ? (data['error'] ?? data['message'] ?? 'Une erreur est survenue')
+            : 'Erreur serveur ${response.statusCode}';
+        return {'success': false, 'message': msg};
       }
     } catch (e) {
       return {
@@ -80,38 +92,83 @@ class ArticleService {
     }
   }
 
-  // Ajoute cette méthode à la classe ArticleService (ou en tant que fonction utilitaire)
-  static Future<void> createArticle(String title, String content) async {
-    final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString('user_data');
-    if (userJson == null || userJson.isEmpty) {
-      throw UnauthorizedException();
-    }
-    final token = jsonDecode(userJson)['token'] as String?;
-    if (token == null || token.isEmpty) {
-      throw UnauthorizedException();
-    }
+  static Future<List<dynamic>> getAllArticles() async {
+    try {
+      final response = await http.post(
+        Uri.parse('${BaseService.baseUrl}/article/getallposts'),
+      );
 
-    final base = dotenv.env['API_URL'] ?? 'http://localhost:8080';
-    final uri = Uri.parse('$base/articles');
+      final data = jsonDecode(response.body);
 
-    final resp = await http.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'title': title,
-        'content': content,
-      }),
-    );
-
-    if (resp.statusCode == 401) {
-      throw UnauthorizedException();
+      if (response.statusCode == 200) {
+        // si le backend renvoie directement une liste
+        if (data is List) return data;
+        // si le backend emballe la liste dans une clé (data / articles / message)
+        if (data is Map) {
+          if (data['data'] is List) return data['data'];
+          if (data['articles'] is List) return data['articles'];
+          if (data['message'] is List) return data['message'];
+          for (final v in data.values) {
+            if (v is List) return v;
+          }
+          // pas de liste trouvée -> retourner vide
+          return <dynamic>[];
+        }
+        return <dynamic>[];
+      } else {
+        final err = (data is Map)
+            ? data['error'] ?? data['message']
+            : 'Erreur serveur ${response.statusCode}';
+        throw Exception(err);
+      }
+    } catch (e) {
+      throw Exception('Erreur de connexion au serveur : $e');
     }
-    if (resp.statusCode != 201 && resp.statusCode != 200) {
-      throw Exception('Erreur serveur (${resp.statusCode}): ${resp.body}');
+  }
+
+  static Future<List<Map<String, dynamic>>> getComments({
+    required int articleId,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${BaseService.baseUrl}/comment/getbyarticle'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'article_id': articleId}),
+      );
+      final data = jsonDecode(response.body);
+
+      print(data);
+
+      if (response.statusCode == 200) {
+        if (data is List) {
+          return data.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        }
+        if (data is Map) {
+          if (data['comments'] is List) {
+            return (data['comments'] as List)
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList();
+          }
+          if (data['data'] is List) {
+            return (data['data'] as List)
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList();
+          }
+          for (final v in data.values) {
+            if (v is List) {
+              return v.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+            }
+          }
+        }
+        return <Map<String, dynamic>>[];
+      } else {
+        final err = (data is Map)
+            ? data['error'] ?? data['message'] ?? 'Erreur serveur'
+            : 'Erreur serveur ${response.statusCode}';
+        throw Exception(err);
+      }
+    } catch (e) {
+      throw Exception('Erreur récupération commentaires : $e');
     }
   }
 }
