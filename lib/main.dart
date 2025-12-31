@@ -5,8 +5,10 @@ import 'pages/faq_page.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
 import 'pages/posts_page.dart';
+import 'pages/topics_page.dart';
 import 'pages/profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'pages/create_post_page.dart';
 
 // import 'assets/mocha_logo_beige.png';
@@ -19,7 +21,7 @@ class MochaRoot extends StatefulWidget {
 }
 
 Future<void> main() async {
-  await dotenv.load();
+await dotenv.load();
   runApp(const MochaApp());
 }
 
@@ -63,20 +65,19 @@ class MochaApp extends StatelessWidget {
 }
 
 class _MochaRootState extends State<MochaRoot> {
-  Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user_data');
-    setState(() {
-      _isLoggedIn = false;
-      _currentIndex = 0;
-    });
-  }
+    Future<void> _logout() async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_data');
+      setState(() {
+        _isLoggedIn = false;
+        _currentIndex = 0;
+      });
+    }
 
-  Future<void> _handleLoginResult() async {
-    await _checkLoginStatus();
-    setState(() {});
-  }
-
+    Future<void> _handleLoginResult() async {
+      await _checkLoginStatus();
+      setState(() {});
+    }
   bool _isLoggedIn = false;
   int _currentIndex = 0;
 
@@ -99,6 +100,7 @@ class _MochaRootState extends State<MochaRoot> {
     const MochaFaqPage(),
     if (_isLoggedIn) const CreatePostPage(),
     const PostsPage(),
+    const TopicsPage(),
   ];
 
   List<String> get _pageLabels => [
@@ -106,6 +108,7 @@ class _MochaRootState extends State<MochaRoot> {
     "FAQ",
     if (_isLoggedIn) "Nouveau Post",
     "Posts",
+    "Topics",
   ];
 
   @override
@@ -158,7 +161,7 @@ class _MochaRootState extends State<MochaRoot> {
               ),
               onPressed: _logout,
             ),
-          ],
+          ]
         ],
       ),
       body: Column(
@@ -173,14 +176,14 @@ class _MochaRootState extends State<MochaRoot> {
                   color: Color(0xFFD2B48C),
                   blurRadius: 2,
                   offset: Offset(0, 2),
-                ),
+                )
               ],
             ),
             child: Center(
               child: Text(
                 _pageLabels[_currentIndex],
                 style: const TextStyle(
-                  color: Color(0xFFF8F0DD),
+                    color: Color(0xFFF8F0DD),
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.1,
@@ -219,6 +222,10 @@ class _MochaRootState extends State<MochaRoot> {
           const BottomNavigationBarItem(
             icon: Icon(Icons.forum),
             label: 'Posts',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.topic),
+            label: 'Topics',
           ),
         ],
       ),

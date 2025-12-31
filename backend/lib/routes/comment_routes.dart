@@ -7,17 +7,17 @@ import '../utils/check_data.dart';
 
 Router commentRoutes(Database db) {
   final router = Router();
-
+  
   router.post('/save', (Request request) async {
     try {
       final payload = await request.readAsString();
       final data = jsonDecode(payload) as Map<String, dynamic>;
 
       final comment = data['comment'] as String?;
-      final article_id = data['article_id'] as int?;
-      final user_id = data['user_id'] as int?;
-
-      if (!CheckDataUtils.isValidFields([comment, article_id, user_id])) {
+      final articleId = data['article_id'] as int?;
+      final userId = data['user_id'] as int?;
+      
+      if (!CheckDataUtils.isValidFields([comment, articleId, userId])) {
         return Response.badRequest(
           body: jsonEncode({'error': 'Tous les champs sont requis.'}),
           headers: {'Content-Type': 'application/json'},
@@ -25,10 +25,10 @@ Router commentRoutes(Database db) {
       }
 
       final conn = db.connection;
-      final result = await conn.execute(
-        'INSERT INTO comments (comment, article_id, user_id) VALUES (\$1, \$2, \$3) RETURNING id, comment, article_id, user_id, created_at',
-        parameters: [comment, article_id, user_id],
-      );
+        final result = await conn.execute(
+            'INSERT INTO comments (comment, article_id, user_id) VALUES (\$1, \$2, \$3) RETURNING id, comment, article_id, user_id, created_at',
+            parameters: [comment, articleId, userId],
+        );
 
       final commentRow = result.first;
       final commentary = Comment(
@@ -49,22 +49,20 @@ Router commentRoutes(Database db) {
     } catch (e) {
       print('Error in /register: $e');
       return Response.internalServerError(
-        body: jsonEncode({
-          'error': 'Échec de l\'inscription : ${e.toString()}',
-        }),
+        body: jsonEncode({'error': 'Échec de l\'inscription : ${e.toString()}'}),
         headers: {'Content-Type': 'application/json'},
       );
     }
   });
 
-  router.post('/getbyarticle', (Request request) async {
+  router.post('/gets', (Request request) async {
     try {
       final payload = await request.readAsString();
       final data = jsonDecode(payload) as Map<String, dynamic>;
 
-      final article_id = data['article_id'] as int?;
-
-      if (!CheckDataUtils.isValidFields([article_id])) {
+      final articleId = data['article_id'] as int?;
+      
+      if (!CheckDataUtils.isValidFields([articleId])) {
         return Response.badRequest(
           body: jsonEncode({'error': 'Tous les champs sont requis'}),
           headers: {'Content-Type': 'application/json'},
@@ -72,41 +70,34 @@ Router commentRoutes(Database db) {
       }
 
       final conn = db.connection;
-      final commentsResult = await conn.execute(
-        'SELECT c.id, c.comment, c.user_id, c.article_id, c.created_at, u.nick_name FROM comments c INNER JOIN users u ON c.user_id = u.id WHERE article_id = \$1 ORDER BY created_at DESC',
-        parameters: [article_id],
-      );
+        final commentsResult = await conn.execute(
+            'SELECT id, comment, user_id, article_id, created_at FROM comments WHERE article_id = \$1 ORDER BY created_at DESC',
+            parameters: [articleId],
+        );
 
-      final comments = commentsResult
-          .map(
-            (row) => {
-              'id': row[0] as int,
-              'comment': row[1] as String,
-              'user_id': row[2] as int,
-              'article_id': row[3] as int,
-              'created_at': row[4].toString(),
-              'nick_name': row[5] as String?,
-            },
-          )
-          .toList();
+      final comments = commentsResult.map((row) => Comment(
+        id: row[0] as int,
+        comment: row[1] as String,
+        user_id: row[2] as int,
+        article_id: row[3] as int,
+        created_at: row[4] as DateTime,
+      )).toList();
 
       return Response.ok(
         jsonEncode({
           'message': 'Commentaires récupérés avec succès',
-          'comments': comments,
+          'comments': comments.map((comment) => comment.toJson()).toList(),
         }),
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {
       print('Error in /getAll: $e');
       return Response.internalServerError(
-        body: jsonEncode({
-          'error': 'Erreur lors de la récupération des commentaires',
-        }),
+        body: jsonEncode({'error': 'Erreur lors de la récupération des commentaires'}),
         headers: {'Content-Type': 'application/json'},
       );
     }
-  });
+});
 
   return router;
 }

@@ -50,8 +50,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
       final token = result['token'];
       final user = UserModel.fromJson(result['user']);
-
+      
       await AuthHelper.saveAuth(token: token, user: user);
+
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

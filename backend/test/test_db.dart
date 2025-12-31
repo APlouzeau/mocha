@@ -1,4 +1,4 @@
-import 'package:backend/database/db.dart';
+import '../lib/database/db.dart';
 
 void main() async {
   print('🧪 Test de connexion à PostgreSQL...\n');
