@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/article_service.dart';
 import 'login_page.dart';
 import '../helpers/auth_helper.dart';
+import '../widgets/ai_assistant_panel.dart';
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
@@ -16,6 +17,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
   final _contentCtrl = TextEditingController();
   final _userIdCtrl = TextEditingController();
   bool _submitting = false;
+  bool _showAIPanel = false;
 
   @override
   void dispose() {
@@ -62,56 +64,87 @@ class _CreatePostPageState extends State<CreatePostPage> {
     }
   }
 
+  void _toggleAIPanel() {
+    setState(() {
+      _showAIPanel = !_showAIPanel;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Créer un post',
-                style: Theme.of(context).textTheme.headlineSmall,
+    return Stack(
+      children: [
+        // Formulaire principal
+        Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Créer un post',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _titleCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Titre',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Titre requis' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _contentCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Contenu',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 6,
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Contenu requis' : null,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: _submitting ? null : _submit,
+                      child: _submitting
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Text('Publier'),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _titleCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Titre',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Titre requis' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _contentCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Contenu',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 6,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Contenu requis' : null,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _submitting ? null : _submit,
-                  child: _submitting
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Publier'),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
+        // Bouton flottant IA
+        Positioned(
+          right: 16,
+          bottom: 16,
+          child: FloatingActionButton.extended(
+            onPressed: _toggleAIPanel,
+            backgroundColor: const Color(0xFF6D4C41),
+            foregroundColor: const Color(0xFFD2B48C),
+            icon: Icon(_showAIPanel ? Icons.close : Icons.auto_awesome),
+            label: Text(_showAIPanel ? 'Fermer' : 'Assistant IA'),
+            tooltip: 'Ouvrir l\'assistant IA',
+          ),
+        ),
+        // Panneau de chat IA
+        if (_showAIPanel)
+          AIAssistantPanel(
+            titleController: _titleCtrl,
+            contentController: _contentCtrl,
+            onClose: _toggleAIPanel,
+          ),
+      ],
     );
   }
 }
