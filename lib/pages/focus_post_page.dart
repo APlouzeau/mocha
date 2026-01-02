@@ -197,8 +197,8 @@ class _PostFocusState extends State<PostFocus> {
               articleMap['user']['name']?.toString();
         } else if (articleMap['user'] != null)
           author = articleMap['user'].toString();
-        else if (articleMap['author_name'] != null)
-          author = articleMap['author_name'].toString();
+        else if (articleMap['nick_name'] != null)
+          author = articleMap['nick_name'].toString();
 
         setState(() {
           _article = {'title': title, 'content': content};

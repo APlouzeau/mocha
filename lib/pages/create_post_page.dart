@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/article_service.dart';
 import '../services/openrouter_service.dart';
 import 'login_page.dart';
+import 'focus_post_page.dart';
 import '../helpers/auth_helper.dart';
 import '../widgets/ai_assistant_panel.dart';
 
@@ -46,15 +47,37 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
     setState(() => _submitting = true);
     try {
-        await ArticleService.postArticle(
+      final result = await ArticleService.postArticle(
         title: _titleCtrl.text.trim(),
         content: _contentCtrl.text.trim(),
         user_id: 1/* int.parse(_userIdCtrl.text.trim()) */,
-    );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Post créé !')),
       );
-      Navigator.pop(context); // retourne à la page précédente (posts)
+      
+      if (!mounted) return;
+      
+      if (result['success'] == true) {
+        // Extraire l'ID de l'article créé
+        final data = result['data'] as Map<String, dynamic>?;
+        final article = data?['article'] as Map<String, dynamic>?;
+        final articleId = article?['id'] as int?;
+        
+        if (articleId != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Post créé !')),
+          );
+          // Fermer la page de création et rediriger vers la page de détail du nouvel article
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PostFocus(postId: articleId),
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message']?.toString() ?? 'Erreur lors de la création')),
+        );
+      }
     } on UnauthorizedException {
       // redirection vers la page de login si pas connecté
       if (!mounted) return;
