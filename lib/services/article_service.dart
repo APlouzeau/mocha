@@ -49,8 +49,8 @@ class ArticleService {
       );
 
       final data = jsonDecode(response.body);
-
       if (response.statusCode == 200) {
+        /* return (data['article']);
         // Cherche une Map représentant l'article dans la réponse
         Map<String, dynamic>? article;
         if (data is Map) {
@@ -73,10 +73,13 @@ class ArticleService {
           article = Map<String, dynamic>.from(data[0]);
         }
 
+        print(article); */
+
         return {
           'success': true,
           'article':
-              article ?? <String, dynamic>{'title': null, 'content': null},
+              data['article'] ??
+              <String, dynamic>{'title': null, 'content': null},
         };
       } else {
         final msg = (data is Map)
@@ -136,8 +139,6 @@ class ArticleService {
         body: jsonEncode({'article_id': articleId}),
       );
       final data = jsonDecode(response.body);
-
-      print(data);
 
       if (response.statusCode == 200) {
         if (data is List) {
