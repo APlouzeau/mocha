@@ -16,57 +16,41 @@ class ChatMessage {
 
 class OpenRouterService {
   static const String _baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
-  static const String _model = 'xiaomi/mimo-v2-flash';
+  static const String _model = 'meta-llama/llama-3.2-3b-instruct';
 
   static String get _apiKey => dotenv.env['OPENROUTER_API_KEY'] ?? '';
 
-  static String _buildSystemPrompt(String topicDraft) {
-    final draftText = topicDraft.isEmpty ? 'Aucun' : topicDraft;
-    
-    return '''Tu es l'Assistant Intelligent de l'application MOCA. Ton rôle est d'aider l'utilisateur à créer, affiner et enrichir son 'Topic' avant qu'il ne le publie.
-
-CONTEXTE ACTUEL DU BROUILLON :
-$draftText
-
-TES MISSIONS :
-Analyse du Contexte : Utilise toujours le texte ci-dessus (le brouillon) pour comprendre de quoi parle l'utilisateur. Si le brouillon est vide ou indique 'Aucun', considère que tu pars d'une page blanche.
-
-Réponse aux Requêtes :
-
-Si l'utilisateur demande de créer : Transforme ses idées en un titre accrocheur et une description structurée.
-
-Si l'utilisateur demande des informations : Fournis des faits, des arguments ou des données basés sur le sujet du brouillon.
-
-Si l'utilisateur demande une amélioration : Propose une version plus percutante ou mieux organisée du brouillon actuel.
-
-DIRECTIVES DE STYLE :
-Concision : Réponds avec des formats adaptés à un écran mobile (listes à puces, paragraphes courts).
-
-Ton : Professionnel, inspirant et collaboratif.
-
-Focus : Reste strictement concentré sur l'aide à la rédaction du topic. Ne divague pas.
-
-Si l'utilisateur te demande quelque chose qui nécessite de modifier le brouillon, propose toujours une structure claire : Titre suggéré : [Ton titre] Description suggérée : [Ta description]''';
-  }
+  static const String _systemPrompt = '''Tu es l'Assistant Barista de MOCHA, le forum dédié aux boissons chaudes. Aide l'utilisateur à créer et enrichir son Topic.
+    REGLE ABSOLUE : Tu ne parles QUE de boissons chaudes (café, thé, chocolat chaud, matcha, chai, tisanes, cappuccino, espresso, latte...). Si l'utilisateur sort du sujet, ramène-le vers les boissons chaudes avec humour.
+    MISSIONS : Analyse le brouillon fourni. Crée des titres accrocheurs. Fournis infos, recettes ou conseils. Améliore les textes avec une touche "coffee culture".
+    STYLE : Concis (mobile-friendly). Ton chaleureux et passionné. Reste TOUJOURS dans l'univers des boissons chaudes.
+    FORMAT : Titre suggéré: [...] Description suggérée: [...]''';
 
   static Future<String> sendMessage({
     required String userMessage,
     required String currentTitle,
     required String currentContent,
     required List<ChatMessage> conversationHistory,
+    required bool includeContext,
   }) async {
     if (_apiKey.isEmpty) {
       throw Exception('Clé API OpenRouter non configurée. Ajoutez OPENROUTER_API_KEY dans votre fichier .env');
     }
 
-    // Construire le brouillon actuel
-    final topicDraft = _buildTopicDraft(currentTitle, currentContent);
+    // Construire le message utilisateur avec ou sans contexte
+    String finalUserMessage = userMessage;
+    if (includeContext) {
+      final topicDraft = _buildTopicDraft(currentTitle, currentContent);
+      if (topicDraft.isNotEmpty) {
+        finalUserMessage = '$userMessage\n\nCONTEXTE ACTUEL DU BROUILLON :\n$topicDraft';
+      }
+    }
     
     // Construire les messages pour l'API
     final messages = <Map<String, String>>[
-      {'role': 'system', 'content': _buildSystemPrompt(topicDraft)},
+      {'role': 'system', 'content': _systemPrompt},
       ...conversationHistory.map((m) => m.toJson()),
-      {'role': 'user', 'content': userMessage},
+      {'role': 'user', 'content': finalUserMessage},
     ];
 
     try {

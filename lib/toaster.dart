@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 // If ToastNoContext is not defined in the imported file, define a placeholder here for demonstration.
 // Remove this if your import provides ToastNoContext.
 class ToastNoContext extends StatelessWidget {
+  const ToastNoContext({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,6 +27,8 @@ void main() => runApp(
 );
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
   _MyAppState createState() => _MyAppState();
 }

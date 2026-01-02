@@ -5,12 +5,18 @@ class AIAssistantPanel extends StatefulWidget {
   final TextEditingController titleController;
   final TextEditingController contentController;
   final VoidCallback onClose;
+  final List<ChatMessage> messages;
+  final bool includeContext;
+  final ValueChanged<bool> onIncludeContextChanged;
 
   const AIAssistantPanel({
     super.key,
     required this.titleController,
     required this.contentController,
     required this.onClose,
+    required this.messages,
+    required this.includeContext,
+    required this.onIncludeContextChanged,
   });
 
   @override
@@ -20,7 +26,6 @@ class AIAssistantPanel extends StatefulWidget {
 class _AIAssistantPanelState extends State<AIAssistantPanel> {
   final _promptController = TextEditingController();
   final _scrollController = ScrollController();
-  final List<ChatMessage> _messages = [];
   bool _isLoading = false;
 
   @override
@@ -35,7 +40,7 @@ class _AIAssistantPanelState extends State<AIAssistantPanel> {
     if (userMessage.isEmpty || _isLoading) return;
 
     setState(() {
-      _messages.add(ChatMessage(role: 'user', content: userMessage));
+      widget.messages.add(ChatMessage(role: 'user', content: userMessage));
       _isLoading = true;
     });
     _promptController.clear();
@@ -46,12 +51,13 @@ class _AIAssistantPanelState extends State<AIAssistantPanel> {
         userMessage: userMessage,
         currentTitle: widget.titleController.text,
         currentContent: widget.contentController.text,
-        conversationHistory: _messages.sublist(0, _messages.length - 1),
+        conversationHistory: widget.messages.sublist(0, widget.messages.length - 1),
+        includeContext: widget.includeContext,
       );
 
       if (mounted) {
         setState(() {
-          _messages.add(ChatMessage(role: 'assistant', content: response));
+          widget.messages.add(ChatMessage(role: 'assistant', content: response));
           _isLoading = false;
         });
         _scrollToBottom();
@@ -59,7 +65,7 @@ class _AIAssistantPanelState extends State<AIAssistantPanel> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _messages.add(ChatMessage(
+          widget.messages.add(ChatMessage(
             role: 'assistant',
             content: '❌ Erreur: ${e.toString().replaceAll('Exception: ', '')}',
           ));
@@ -154,17 +160,17 @@ class _AIAssistantPanelState extends State<AIAssistantPanel> {
                   ),
                   // Messages
                   Expanded(
-                    child: _messages.isEmpty
+                    child: widget.messages.isEmpty
                         ? _buildEmptyState()
                         : ListView.builder(
                             controller: _scrollController,
                             padding: const EdgeInsets.all(12),
-                            itemCount: _messages.length + (_isLoading ? 1 : 0),
+                            itemCount: widget.messages.length + (_isLoading ? 1 : 0),
                             itemBuilder: (context, index) {
-                              if (index == _messages.length && _isLoading) {
+                              if (index == widget.messages.length && _isLoading) {
                                 return _buildLoadingBubble();
                               }
-                              return _buildMessageBubble(_messages[index]);
+                              return _buildMessageBubble(widget.messages[index]);
                             },
                           ),
                   ),
@@ -182,64 +188,127 @@ class _AIAssistantPanelState extends State<AIAssistantPanel> {
                       ],
                     ),
                     child: SafeArea(
-                      child: Row(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _promptController,
-                              decoration: InputDecoration(
-                                hintText: 'Demandez de l\'aide...',
-                                hintStyle: TextStyle(color: Colors.grey[500]),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                  borderSide: const BorderSide(color: Color(0xFFD2B48C)),
+                          // Toggle pour inclure le contexte
+                          GestureDetector(
+                            onTap: () {
+                              widget.onIncludeContextChanged(!widget.includeContext);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              margin: const EdgeInsets.only(bottom: 10),
+                              decoration: BoxDecoration(
+                                color: widget.includeContext 
+                                    ? const Color(0xFF6D4C41).withAlpha(26)
+                                    : Colors.grey.withAlpha(26),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: widget.includeContext 
+                                      ? const Color(0xFF6D4C41) 
+                                      : Colors.grey,
+                                  width: 1,
                                 ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                  borderSide: const BorderSide(color: Color(0xFFD2B48C)),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                  borderSide: const BorderSide(color: Color(0xFF6D4C41), width: 2),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                filled: true,
-                                fillColor: const Color(0xFFF8F0DD),
                               ),
-                              maxLines: 3,
-                              minLines: 1,
-                              textInputAction: TextInputAction.send,
-                              onSubmitted: (_) => _sendMessage(),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    widget.includeContext 
+                                        ? Icons.description 
+                                        : Icons.description_outlined,
+                                    size: 18,
+                                    color: widget.includeContext 
+                                        ? const Color(0xFF6D4C41) 
+                                        : Colors.grey[600],
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Inclure le brouillon',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: widget.includeContext 
+                                          ? const Color(0xFF6D4C41) 
+                                          : Colors.grey[600],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Icon(
+                                    widget.includeContext 
+                                        ? Icons.check_circle 
+                                        : Icons.circle_outlined,
+                                    size: 18,
+                                    color: widget.includeContext 
+                                        ? const Color(0xFF6D4C41) 
+                                        : Colors.grey[600],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            width: 56,
-                            height: 56,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _sendMessage,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF6D4C41),
-                                foregroundColor: const Color(0xFFD2B48C),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                          // Champ de texte et bouton envoi
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _promptController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Demandez de l\'aide...',
+                                    hintStyle: TextStyle(color: Colors.grey[500]),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(24),
+                                      borderSide: const BorderSide(color: Color(0xFFD2B48C)),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(24),
+                                      borderSide: const BorderSide(color: Color(0xFFD2B48C)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(24),
+                                      borderSide: const BorderSide(color: Color(0xFF6D4C41), width: 2),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    filled: true,
+                                    fillColor: const Color(0xFFF8F0DD),
+                                  ),
+                                  maxLines: 3,
+                                  minLines: 1,
+                                  textInputAction: TextInputAction.send,
+                                  onSubmitted: (_) => _sendMessage(),
                                 ),
-                                padding: EdgeInsets.zero,
                               ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Color(0xFFD2B48C),
-                                      ),
-                                    )
-                                  : const Icon(Icons.send, size: 24),
-                            ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 56,
+                                height: 56,
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _sendMessage,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF6D4C41),
+                                    foregroundColor: const Color(0xFFD2B48C),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Color(0xFFD2B48C),
+                                          ),
+                                        )
+                                      : const Icon(Icons.send, size: 24),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

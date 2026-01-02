@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/article_service.dart';
+import '../services/openrouter_service.dart';
 import 'login_page.dart';
 import '../helpers/auth_helper.dart';
 import '../widgets/ai_assistant_panel.dart';
@@ -18,6 +19,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
   final _userIdCtrl = TextEditingController();
   bool _submitting = false;
   bool _showAIPanel = false;
+  
+  // État persistant du chat IA
+  final List<ChatMessage> _aiMessages = [];
+  bool _aiIncludeContext = true;
 
   @override
   void dispose() {
@@ -143,6 +148,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
             titleController: _titleCtrl,
             contentController: _contentCtrl,
             onClose: _toggleAIPanel,
+            messages: _aiMessages,
+            includeContext: _aiIncludeContext,
+            onIncludeContextChanged: (value) {
+              setState(() => _aiIncludeContext = value);
+            },
           ),
       ],
     );
