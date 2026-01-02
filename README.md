@@ -1,67 +1,138 @@
+sudo apt update
+sudo -u postgres psql
+git clone https://github.com/ton/repo.git
+
 # Mocha
 
-Application Flutter multi-plateforme.
+Application mobile Flutter avec backend Dart et base PostgreSQL.
 
-## 🚀 Démarrage rapide
+## 🚀 Prérequis
 
-### Prérequis
+### Frontend Flutter
 
--   Flutter SDK (dernière version stable)
--   Un téléphone Android/iOS avec le débogage USB activé, ou un émulateur
+-   **Flutter SDK** ≥ 3.0 : [Télécharger](https://docs.flutter.dev/get-started/install)
+-   **Dart SDK** (inclus avec Flutter)
+-   **Android Studio** + émulateur Android **OU** Xcode (macOS) pour émulateur iOS
+-   **Git** ≥ 2.x
+-   **VS Code** ou **Android Studio** avec extensions Flutter/Dart
 
-### Installation
+### Backend Dart
 
-```bash
-# Installer les dépendances
-make deps
+-   **Dart SDK** ≥ 3.0 (inclus avec Flutter)
+-   **PostgreSQL** ≥ 15
 
-# Configurer la base de données (première fois uniquement)
-cp .env.example .env  # Puis modifiez les variables si nécessaire
-
-# Lancer l'app avec hot reload
-make run
-```
-
-## 📱 Commandes disponibles
+### Vérification Flutter
 
 ```bash
-# Application
-make run          # Lance l'app avec hot reload
-make back         # Lance le backend de l'app
-make run-device   # Lance sur un device spécifique (DEVICE=id)
-make devices      # Liste les devices connectés
-make clean        # Nettoie le projet
-make build-apk    # Build APK Android release
-make build-ios    # Build iOS release
-make deps         # Récupère les dépendances
-make help         # Affiche l'aide
-make db-create POSTGRES_DB=mocha_db POSTGRES_USER=mocha_user POSTGRES_PASSWORD=mocha_password POSTGRES_PORT=5432 # Créer le docker de la bdd (remplacer par vos valeurs .env)
+flutter doctor
 ```
 
-## 🛠️ Développement
+Tous les ✅ doivent être verts !
 
-Pour lancer l'app sur un device spécifique :
+## 🗄️ Installation PostgreSQL
+
+### Ubuntu/Debian
 
 ```bash
-# Liste les devices disponibles
-make devices
-
-# Lance sur le device choisi
-make run-device DEVICE=<device-id>
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
 ```
 
-Le hot reload est activé automatiquement - modifiez votre code et les changements seront instantanément reflétés sur votre appareil.
+### Windows/Mac
 
-##  Build
+Télécharge depuis [postgresql.org/download](https://www.postgresql.org/download/)
+
+### Créer la base Mocha
+
+```sql
+sudo -u postgres psql
+CREATE DATABASE mocha;
+CREATE USER mocha_user WITH PASSWORD 'mocha_pass';
+GRANT ALL PRIVILEGES ON DATABASE mocha TO mocha_user;
+\q
+```
+
+## 📦 Installation du projet
+
+1. **Cloner le repo**
 
 ```bash
-# Android
-make build-apk
-
-# iOS
-make build-ios
+git clone https://github.com/ton/repo.git
+cd mocha
 ```
 
-## 📄 Licence
+2. **Copier le fichier .env**
 
-Ce projet est sous licence MIT.
+```bash
+cp .env.example .env
+```
+
+Le fichier `.env.example` se trouve à la racine du projet.
+
+3. **Éditer `.env`** (adapter si besoin) :
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=mocha
+DB_USER=mocha_user
+DB_PASSWORD=mocha_pass
+BACKEND_PORT=8080
+FRONTEND_PORT=3000
+```
+
+4. **Installer les dépendances**
+
+-   **Backend Dart** :
+
+```bash
+cd backend/
+dart pub get
+```
+
+-   **Frontend Flutter** (à la racine du projet) :
+
+```bash
+flutter pub get
+```
+
+## 🗃️ Initialiser la base de données
+
+**Important** : Utilise le schéma SQL fourni !
+
+Le fichier du schéma est `backend/database_schema.sql`.
+
+```bash
+cd backend/
+psql -h localhost -U mocha_user -d mocha < database_schema.sql
+```
+
+## ▶️ Lancement
+
+### 1. Démarrer PostgreSQL
+
+```bash
+sudo systemctl start postgresql # Ubuntu
+```
+
+### 2. Lancer le backend Dart (terminal 1)
+
+```bash
+dart run bin/server.dart
+```
+
+### 3. Lancer le frontend Flutter (terminal 2)
+
+```bash
+flutter run
+```
+
+**Sélectionne** un émulateur Android/iOS ou Chrome
+
+## 📱 Prévisualisation
+
+-   **App mobile** : Émulateur Android/iOS ou appareil physique
+-   **Web preview** : `flutter run -d chrome`
+-   **API Backend** : `http://localhost:8080`
