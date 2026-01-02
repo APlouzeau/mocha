@@ -12,4 +12,8 @@ class PasswordUtils {
       return false;
     }
   }
+
+  static bool passwordLengthValid(String password) {
+    return password.length >= 8;
+  }
 }

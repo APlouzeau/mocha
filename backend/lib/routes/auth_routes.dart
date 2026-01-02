@@ -9,7 +9,7 @@ import '../utils/check_data.dart';
 
 Router authRoutes(Database db) {
   final router = Router();
-  
+
   router.post('/register', (Request request) async {
     try {
       final payload = await request.readAsString();
@@ -18,7 +18,7 @@ Router authRoutes(Database db) {
       final nickName = data['nickName'] as String?;
       final email = data['email'] as String?;
       final password = data['password'] as String?;
-      
+
       if (!CheckDataUtils.isValidFields([nickName, email, password])) {
         return Response.badRequest(
           body: jsonEncode({'error': 'Tous les champs sont requis.'}),
@@ -26,20 +26,52 @@ Router authRoutes(Database db) {
         );
       }
 
+      if (!CheckDataUtils.isValidEmail(email!)) {
+        return Response(
+          409,
+          body: jsonEncode({'error': 'Format d\'email invalide.'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      if (!PasswordUtils.passwordLengthValid(password!)) {
+        return Response(
+          409,
+          body: jsonEncode({
+            'error': 'Le mot de passe doit contenir au moins 8 caractères.',
+          }),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
       final conn = db.connection;
-      final existingUser = await conn.execute(
+      final existingUserMail = await conn.execute(
         'SELECT id FROM users WHERE email = \$1',
         parameters: [email],
       );
-      
-      if (existingUser.isNotEmpty) {
-        return Response(409,
+
+      if (existingUserMail.isNotEmpty) {
+        return Response(
+          409,
           body: jsonEncode({'error': 'Email déjà utilisé'}),
           headers: {'Content-Type': 'application/json'},
         );
       }
 
-      final hashedPassword = PasswordUtils.hashPassword(password!);
+      final existingUserNickName = await conn.execute(
+        'SELECT id FROM users WHERE nick_name = \$1',
+        parameters: [nickName],
+      );
+
+      if (existingUserNickName.isNotEmpty) {
+        return Response(
+          409,
+          body: jsonEncode({'error': 'Nom d\'utilisateur déjà utilisé'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final hashedPassword = PasswordUtils.hashPassword(password);
 
       final result = await conn.execute(
         'INSERT INTO users (nick_name, email, password_hash) VALUES (\$1, \$2, \$3) RETURNING id, nick_name, email, role_id, created_at',
@@ -69,7 +101,9 @@ Router authRoutes(Database db) {
     } catch (e) {
       print('Error in /register: $e');
       return Response.internalServerError(
-        body: jsonEncode({'error': 'Échec de l\'inscription : ${e.toString()}'}),
+        body: jsonEncode({
+          'error': 'Échec de l\'inscription : ${e.toString()}',
+        }),
         headers: {'Content-Type': 'application/json'},
       );
     }
@@ -82,7 +116,7 @@ Router authRoutes(Database db) {
 
       final email = data['email'] as String?;
       final password = data['password'] as String?;
-      
+
       if (!CheckDataUtils.isValidFields([email, password])) {
         return Response.badRequest(
           body: jsonEncode({'error': 'Tous les champs sont requis'}),
@@ -95,9 +129,10 @@ Router authRoutes(Database db) {
         'SELECT id, password_hash, nick_name, role_id FROM users WHERE email = \$1',
         parameters: [email],
       );
-      
+
       if (existingUser.isEmpty) {
-        return Response(401,
+        return Response(
+          401,
           body: jsonEncode({'error': 'Identifiant ou mot de passe incorrect'}),
           headers: {'Content-Type': 'application/json'},
         );
@@ -107,9 +142,10 @@ Router authRoutes(Database db) {
         password!,
         existingUser.first[1] as String,
       );
-      
+
       if (!userPasswordCheck) {
-        return Response(401,
+        return Response(
+          401,
           body: jsonEncode({'error': 'Identifiant ou mot de passe incorrect'}),
           headers: {'Content-Type': 'application/json'},
         );
