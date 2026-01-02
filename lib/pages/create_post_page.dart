@@ -50,7 +50,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       final result = await ArticleService.postArticle(
         title: _titleCtrl.text.trim(),
         content: _contentCtrl.text.trim(),
-        user_id: 1/* int.parse(_userIdCtrl.text.trim()) */,
+        user_id: user.id/* int.parse(_userIdCtrl.text.trim()) */,
       );
       
       if (!mounted) return;
