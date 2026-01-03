@@ -20,7 +20,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
   final _userIdCtrl = TextEditingController();
   bool _submitting = false;
   bool _showAIPanel = false;
-  
+
   // État persistant du chat IA
   final List<ChatMessage> _aiMessages = [];
   bool _aiIncludeContext = true;
@@ -42,7 +42,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
     if (user == null) {
       Navigator.pushReplacementNamed(context, '/login');
-    return;
+      return;
     }
 
     setState(() => _submitting = true);
@@ -50,43 +50,48 @@ class _CreatePostPageState extends State<CreatePostPage> {
       final result = await ArticleService.postArticle(
         title: _titleCtrl.text.trim(),
         content: _contentCtrl.text.trim(),
-        user_id: user.id/* int.parse(_userIdCtrl.text.trim()) */,
+        user_id: user['id'] as int,
       );
-      
+
       if (!mounted) return;
-      
+
       if (result['success'] == true) {
         // Extraire l'ID de l'article créé
         final data = result['data'] as Map<String, dynamic>?;
         final article = data?['article'] as Map<String, dynamic>?;
         final articleId = article?['id'] as int?;
-        
+
         if (articleId != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Post créé !')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Post créé !')));
           // Fermer la page de création et rediriger vers la page de détail du nouvel article
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => PostFocus(postId: articleId),
-            ),
+            MaterialPageRoute(builder: (_) => PostFocus(postId: articleId)),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message']?.toString() ?? 'Erreur lors de la création')),
+          SnackBar(
+            content: Text(
+              result['message']?.toString() ?? 'Erreur lors de la création',
+            ),
+          ),
         );
       }
     } on UnauthorizedException {
       // redirection vers la page de login si pas connecté
       if (!mounted) return;
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur création post : $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur création post : $e')));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -133,8 +138,9 @@ class _CreatePostPageState extends State<CreatePostPage> {
                       border: OutlineInputBorder(),
                     ),
                     maxLines: 6,
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Contenu requis' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Contenu requis'
+                        : null,
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -143,7 +149,14 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     child: ElevatedButton(
                       onPressed: _submitting ? null : _submit,
                       child: _submitting
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
                           : const Text('Publier'),
                     ),
                   ),

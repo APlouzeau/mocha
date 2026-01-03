@@ -43,7 +43,7 @@ class _PostFocusState extends State<PostFocus> {
     final user = await AuthHelper.getUser();
     if (!mounted) return;
     setState(() {
-      _currentUser = user;
+      _currentUser = user != null ? UserModel.fromJson(user) : null;
     });
   }
 
@@ -177,16 +177,11 @@ class _PostFocusState extends State<PostFocus> {
     });
     try {
       final res = await ArticleService.getArticle(id: widget.postId);
-      print(res);
       if (res['success'] == true) {
         final article = res['article'];
         final title = article['title']?.toString();
         final content = article['content']?.toString() ?? '';
         final author = article['nick_name']?.toString();
-
-        print(author);
-        print('Title: $title');
-        print('Content: $content');
 
         setState(() {
           _article = {'title': title, 'content': content};
@@ -239,7 +234,6 @@ class _PostFocusState extends State<PostFocus> {
         _comments = comments;
       });
     } catch (e) {
-      // keep comments empty but don't fail the page
       debugPrint('Erreur chargement commentaires: $e');
     } finally {
       if (mounted) setState(() => _loadingComments = false);

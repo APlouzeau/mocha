@@ -47,7 +47,6 @@ Router commentRoutes(Database db) {
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {
-      print('Error in /register: $e');
       return Response.internalServerError(
         body: jsonEncode({
           'error': 'Échec de l\'inscription : ${e.toString()}',
@@ -98,7 +97,6 @@ Router commentRoutes(Database db) {
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {
-      print('Error in /getAll: $e');
       return Response.internalServerError(
         body: jsonEncode({
           'error': 'Erreur lors de la récupération des commentaires',

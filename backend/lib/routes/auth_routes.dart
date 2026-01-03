@@ -99,7 +99,6 @@ Router authRoutes(Database db) {
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {
-      print('Error in /register: $e');
       return Response.internalServerError(
         body: jsonEncode({
           'error': 'Échec de l\'inscription : ${e.toString()}',
@@ -126,7 +125,7 @@ Router authRoutes(Database db) {
 
       final conn = db.connection;
       final existingUser = await conn.execute(
-        'SELECT id, password_hash, nick_name, role_id FROM users WHERE email = \$1',
+        'SELECT u.id, u.password_hash, u.nick_name, u.role_id, r.role, u.created_at FROM users u JOIN roles r ON u.role_id = r.id WHERE email = \$1',
         parameters: [email],
       );
 
@@ -157,21 +156,28 @@ Router authRoutes(Database db) {
         email: email!,
         passwordHash: existingUser.first[1] as String,
         roleId: existingUser.first[3] as int,
-        createdAt: DateTime.now(),
+        createdAt: existingUser.first[5] as DateTime,
       );
 
       final token = JwtUtils.generateToken(user);
+
+      final userResponse = {
+        'id': existingUser.first[0] as int,
+        'nickName': existingUser.first[2] as String,
+        'email': email,
+        'role': existingUser.first[4] as String,
+        'createdAt': (existingUser.first[5] as DateTime).toIso8601String(),
+      };
 
       return Response.ok(
         jsonEncode({
           'message': 'Connexion réussie',
           'token': token,
-          'user': user.toJson(),
+          'user': userResponse,
         }),
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {
-      print('Error in /login: $e');
       return Response.internalServerError(
         body: jsonEncode({'error': 'Erreur lors de la connexion'}),
         headers: {'Content-Type': 'application/json'},

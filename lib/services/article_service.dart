@@ -50,31 +50,6 @@ class ArticleService {
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        /* return (data['article']);
-        // Cherche une Map représentant l'article dans la réponse
-        Map<String, dynamic>? article;
-        if (data is Map) {
-          if (data['article'] is Map)
-            article = Map<String, dynamic>.from(data['article']);
-          else if (data['data'] is Map)
-            article = Map<String, dynamic>.from(data['data']);
-          else if (data['message'] is Map)
-            article = Map<String, dynamic>.from(data['message']);
-          else {
-            // peut-être la réponse est { "message": "Article récupéré avec succès", "data": { ... } }
-            for (final v in data.values) {
-              if (v is Map) {
-                article = Map<String, dynamic>.from(v);
-                break;
-              }
-            }
-          }
-        } else if (data is List && data.isNotEmpty && data[0] is Map) {
-          article = Map<String, dynamic>.from(data[0]);
-        }
-
-        print(article); */
-
         return {
           'success': true,
           'article':

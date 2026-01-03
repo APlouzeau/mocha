@@ -60,7 +60,6 @@ Router articleRoutes(Database db) {
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {
-      print('Error in /register: $e');
       return Response.internalServerError(
         body: jsonEncode({
           'error': 'Échec de l\'enregistrement : ${e.toString()}',
@@ -107,8 +106,6 @@ Router articleRoutes(Database db) {
         'created_at': (articleRow[4] as DateTime).toIso8601String(),
       };
 
-      print(article);
-
       return Response.ok(
         jsonEncode({
           'message': 'Article récupéré avec succès',
@@ -117,7 +114,6 @@ Router articleRoutes(Database db) {
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {
-      print('Error in /get: $e');
       return Response.internalServerError(
         body: jsonEncode({
           'error': 'Erreur lors de la récupération de l\'article',
@@ -156,7 +152,6 @@ Router articleRoutes(Database db) {
         headers: {'Content-Type': 'application/json'},
       );
     } catch (e) {
-      print('Error in /get: $e');
       return Response.internalServerError(
         body: jsonEncode({
           'error': 'Erreur lors de la récupération de l\'article',
