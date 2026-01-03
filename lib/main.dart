@@ -6,8 +6,8 @@ import 'pages/login_page.dart';
 import 'pages/register_page.dart';
 import 'pages/posts_page.dart';
 import 'pages/profile_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/create_post_page.dart';
+import 'helpers/auth_helper.dart';
 
 // import 'assets/mocha_logo_beige.png';
 
@@ -64,47 +64,56 @@ class MochaApp extends StatelessWidget {
 
 class _MochaRootState extends State<MochaRoot> {
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user_data');
+    await AuthHelper.logout();
     setState(() {
       _isLoggedIn = false;
+      _isModerator = false;
       _currentIndex = 0;
     });
   }
 
   Future<void> _handleLoginResult() async {
     await _checkLoginStatus();
+    await _checkModeratorStatus();
     setState(() {});
   }
 
   bool _isLoggedIn = false;
+  bool _isModerator = false;
   int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _checkLoginStatus();
+    _checkModeratorStatus();
   }
 
   Future<void> _checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString('user_data');
+    final isLogged = await AuthHelper.isLoggedIn();
     setState(() {
-      _isLoggedIn = userJson != null && userJson.isNotEmpty;
+      _isLoggedIn = isLogged;
+    });
+  }
+
+  Future<void> _checkModeratorStatus() async {
+    final isModerator = await AuthHelper.isModerator();
+    setState(() {
+      _isModerator = isModerator;
     });
   }
 
   List<Widget> get _pages => [
     const MochaHomePage(),
     const MochaFaqPage(),
-    if (_isLoggedIn) const CreatePostPage(),
+    if (_isModerator) const CreatePostPage(),
     const PostsPage(),
   ];
 
   List<String> get _pageLabels => [
     "Accueil",
     "FAQ",
-    if (_isLoggedIn) "Nouveau Post",
+    if (_isModerator) "Nouveau Post",
     "Posts",
   ];
 
@@ -114,14 +123,7 @@ class _MochaRootState extends State<MochaRoot> {
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            // Image.asset(
-            //   'assets/mocha_logo_beige.png',
-            //   height: 32,
-            // ),
-            const SizedBox(width: 10),
-            const Text('Mocha'),
-          ],
+          children: [const SizedBox(width: 10), const Text('Mocha')],
         ),
         actions: [
           if (!_isLoggedIn)
@@ -211,7 +213,7 @@ class _MochaRootState extends State<MochaRoot> {
             icon: Icon(Icons.help_outline),
             label: 'FAQ',
           ),
-          if (_isLoggedIn)
+          if (_isLoggedIn && _isModerator)
             const BottomNavigationBarItem(
               icon: Icon(Icons.add),
               label: 'Poster',

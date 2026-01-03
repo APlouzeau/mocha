@@ -11,8 +11,8 @@ class ProfilPage extends StatefulWidget {
 class _ProfilPageState extends State<ProfilPage> {
   String? nickName;
   String? email;
-  int? roleId;
-  DateTime? createdAt;
+  String? role;
+  String? createdAt;
   bool isLoading = true;
 
   @override
@@ -33,10 +33,43 @@ class _ProfilPageState extends State<ProfilPage> {
 
     try {
       setState(() {
-        nickName = user.nickName;
-        email = user.email;
-        roleId = user.roleId;
-        createdAt = user.createdAt;
+        nickName = user['nickName'] as String?;
+        email = user['email'] as String?;
+        role = user['role'] as String?;
+
+        final createdAtStr = user['createdAt'];
+        if (createdAtStr != null) {
+          try {
+            DateTime date;
+            if (createdAtStr is String) {
+              date = DateTime.parse(createdAtStr);
+            } else if (createdAtStr is DateTime) {
+              date = createdAtStr;
+            } else {
+              date = DateTime.now();
+            }
+            // Format simple sans locale
+            final months = [
+              '',
+              'janvier',
+              'février',
+              'mars',
+              'avril',
+              'mai',
+              'juin',
+              'juillet',
+              'août',
+              'septembre',
+              'octobre',
+              'novembre',
+              'décembre',
+            ];
+            createdAt = '${date.day} ${months[date.month]} ${date.year}';
+          } catch (e) {
+            createdAt = null;
+          }
+        }
+
         isLoading = false;
       });
     } catch (e) {
@@ -58,8 +91,8 @@ class _ProfilPageState extends State<ProfilPage> {
                 children: [
                   Text('Pseudo : ${nickName ?? "-"}'),
                   Text('Email : ${email ?? "-"}'),
-                  Text('Role ID : ${roleId ?? "-"}'),
-                  Text('Créé le : ${createdAt ?? "-"}'),
+                  Text('Role : ${role ?? "-"}'),
+                  if (createdAt != null) Text('Créé le : $createdAt'),
                 ],
               ),
             ),

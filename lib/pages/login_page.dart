@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mocha/services/auth_service.dart';
 import 'package:mocha/helpers/auth_helper.dart';
-import 'package:mocha/models/user_model.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -44,13 +43,15 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: Colors.green,
         ),
       );
-
       final token = result['token'];
-      final user = UserModel.fromJson(result['user']);
+      final user = result['user'];
 
       await AuthHelper.saveAuth(token: token, user: user);
 
-      Navigator.pushReplacementNamed(context, '/profile');
+      // Retourne à la page précédente pour que main.dart se mette à jour
+      if (mounted) {
+        Navigator.pop(context, true); // true = connexion réussie
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -61,6 +62,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
