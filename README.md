@@ -110,7 +110,23 @@ cd mocha
 cp .env.example .env
 ```
 
-3. **Éditer le fichier `.env`** à la racine du projet :
+3. **Générer une clé JWT secrète**
+
+Utilisez les scripts fournis pour générer une clé JWT aléatoire et sécurisée :
+
+**Sur Linux/macOS ou Windows (Git Bash/WSL) :**
+```bash
+./scripts/generate-jwt-unix.sh
+```
+
+**Sur Windows (PowerShell) :**
+```powershell
+.\scripts\generate-jwt-win.ps1
+```
+
+Copiez la clé générée, vous en aurez besoin pour l'étape suivante.
+
+4. **Éditer le fichier `.env`** à la racine du projet :
 
 ```env
 # Base de données
@@ -131,7 +147,7 @@ PORT=8080
 OPENROUTER_API_KEY=
 ```
 
-4. **Créer le fichier `.env` pour Flutter**
+5. **Créer le fichier `.env` pour Flutter**
 
 Créez un fichier `.env` **à la racine du projet** (même niveau que `pubspec.yaml`) :
 
@@ -144,7 +160,7 @@ API_URL=http://localhost:8080
 -   Sur émulateur Android : utilisez `http://10.0.2.2:8080`
 -   Sur appareil physique : utilisez l'IP de votre machine (ex: `http://192.168.1.10:8080`)
 
-5. **Installer les dépendances**
+6. **Installer les dépendances**
 
 **Backend Dart** :
 
