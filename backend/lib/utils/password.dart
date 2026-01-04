@@ -16,4 +16,11 @@ class PasswordUtils {
   static bool passwordLengthValid(String password) {
     return password.length >= 8;
   }
+
+  static bool passwordConfirmationValid(
+    String password,
+    String passwordConfirm,
+  ) {
+    return password == passwordConfirm;
+  }
 }

@@ -18,8 +18,14 @@ Router authRoutes(Database db) {
       final nickName = data['nickName'] as String?;
       final email = data['email'] as String?;
       final password = data['password'] as String?;
+      final passwordConfirm = data['passwordConfirm'] as String?;
 
-      if (!CheckDataUtils.isValidFields([nickName, email, password])) {
+      if (!CheckDataUtils.isValidFields([
+        nickName,
+        email,
+        password,
+        passwordConfirm,
+      ])) {
         return Response.badRequest(
           body: jsonEncode({'error': 'Tous les champs sont requis.'}),
           headers: {'Content-Type': 'application/json'},
@@ -39,6 +45,19 @@ Router authRoutes(Database db) {
           409,
           body: jsonEncode({
             'error': 'Le mot de passe doit contenir au moins 8 caractères.',
+          }),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      if (!PasswordUtils.passwordConfirmationValid(
+        password,
+        passwordConfirm!,
+      )) {
+        return Response(
+          409,
+          body: jsonEncode({
+            'error': 'Les mots de passe ne correspondent pas.',
           }),
           headers: {'Content-Type': 'application/json'},
         );
