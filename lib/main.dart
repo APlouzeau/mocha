@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'pages/home_page.dart';
 import 'pages/faq_page.dart';
 import 'pages/login_page.dart';
@@ -121,9 +122,25 @@ class _MochaRootState extends State<MochaRoot> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: InkWell(
+          onTap: () {
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: SvgPicture.asset(
+              'lib/assets/moca_vector.svg',
+              width: 60,
+              height: 60,
+              colorFilter: const ColorFilter.mode(Color(0xFFD2B48C), BlendMode.srcIn),
+            ),
+          ),
+        ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [const SizedBox(width: 10), const Text('Mocha')],
+          children: const [Text('Mocha')],
         ),
         actions: [
           if (!_isLoggedIn)
