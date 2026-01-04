@@ -40,9 +40,10 @@ docker ps
 ```
 
 C'est tout ! La base de données est créée et initialisée automatiquement avec :
-- **3 utilisateurs test** (voir section ci-dessous)
-- **6 articles** sur le café
-- **6 commentaires**
+
+-   **3 utilisateurs test** (voir section ci-dessous)
+-   **6 articles** sur le café
+-   **6 commentaires**
 
 ✅ Prêt à l'emploi !
 
@@ -185,11 +186,11 @@ Mot de passe par défaut : `mocha_pass` (si vous avez suivi les instructions ci-
 
 La base de données est initialisée avec 3 utilisateurs pré-créés :
 
-| Rôle | Email | Mot de passe |
-|------|-------|-------------|
-| **Admin** | admin@admin.fr | password |
-| **Utilisateur** | barista@mocha.fr | password |
-| **Utilisateur** | coffee@mocha.fr | password |
+| Rôle            | Email            | Mot de passe |
+| --------------- | ---------------- | ------------ |
+| **Admin**       | admin@admin.fr   | password     |
+| **Utilisateur** | barista@mocha.fr | password     |
+| **Utilisateur** | coffee@mocha.fr  | password     |
 
 Vous pouvez vous connecter avec n'importe lequel de ces comptes pour tester l'application.
 
@@ -203,16 +204,19 @@ make dev
 ```
 
 Cette commande démarre automatiquement :
+
 1. 🗄️ PostgreSQL dans Docker (port 5433)
 2. 🚀 Backend Dart (port 8080) en arrière-plan
 3. 📱 Application Flutter
 
 Pour voir les logs du backend :
+
 ```bash
 make back-logs
 ```
 
 Pour tout arrêter :
+
 ```bash
 make stop
 ```
