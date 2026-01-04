@@ -48,6 +48,9 @@ dependencies:
 
     intl: ^0.20.2
 
+    # Pour afficher les fichiers SVG
+    flutter_svg: ^2.0.10+1
+
 dev_dependencies:
     flutter_test:
         sdk: flutter
@@ -102,4 +105,5 @@ flutter:
 
     assets:
         - .env
+        - lib/assets/moca_vector.svg
     #   - assets/mocha_logo_beige.png

@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
-import '../lib/database/db.dart';
-import '../lib/routes/auth_routes.dart';
-import '../lib/routes/article_routes.dart';
-import '../lib/routes/comment_routes.dart';
+import 'package:backend/database/db.dart';
+import 'package:backend/routes/auth_routes.dart';
+import 'package:backend/routes/article_routes.dart';
+import 'package:backend/routes/comment_routes.dart';
 
 void main() async {
   final db = Database();

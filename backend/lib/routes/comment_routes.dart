@@ -14,10 +14,10 @@ Router commentRoutes(Database db) {
       final data = jsonDecode(payload) as Map<String, dynamic>;
 
       final comment = data['comment'] as String?;
-      final article_id = data['article_id'] as int?;
-      final user_id = data['user_id'] as int?;
+      final articleId = data['article_id'] as int?;
+      final userId = data['user_id'] as int?;
 
-      if (!CheckDataUtils.isValidFields([comment, article_id, user_id])) {
+      if (!CheckDataUtils.isValidFields([comment, articleId, userId])) {
         return Response.badRequest(
           body: jsonEncode({'error': 'Tous les champs sont requis.'}),
           headers: {'Content-Type': 'application/json'},
@@ -27,7 +27,7 @@ Router commentRoutes(Database db) {
       final conn = db.connection;
       final result = await conn.execute(
         'INSERT INTO comments (comment, article_id, user_id) VALUES (\$1, \$2, \$3) RETURNING id, comment, article_id, user_id, created_at',
-        parameters: [comment, article_id, user_id],
+        parameters: [comment, articleId, userId],
       );
 
       final commentRow = result.first;
@@ -61,9 +61,9 @@ Router commentRoutes(Database db) {
       final payload = await request.readAsString();
       final data = jsonDecode(payload) as Map<String, dynamic>;
 
-      final article_id = data['article_id'] as int?;
+      final articleId = data['article_id'] as int?;
 
-      if (!CheckDataUtils.isValidFields([article_id])) {
+      if (!CheckDataUtils.isValidFields([articleId])) {
         return Response.badRequest(
           body: jsonEncode({'error': 'Tous les champs sont requis'}),
           headers: {'Content-Type': 'application/json'},
@@ -73,7 +73,7 @@ Router commentRoutes(Database db) {
       final conn = db.connection;
       final commentsResult = await conn.execute(
         'SELECT c.id, c.comment, c.user_id, c.article_id, c.created_at, u.nick_name FROM comments c INNER JOIN users u ON c.user_id = u.id WHERE article_id = \$1 ORDER BY created_at DESC',
-        parameters: [article_id],
+        parameters: [articleId],
       );
 
       final comments = commentsResult

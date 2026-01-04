@@ -8,19 +8,18 @@ class ChatMessage {
 
   ChatMessage({required this.role, required this.content});
 
-  Map<String, String> toJson() => {
-    'role': role,
-    'content': content,
-  };
+  Map<String, String> toJson() => {'role': role, 'content': content};
 }
 
 class OpenRouterService {
-  static const String _baseUrl = 'https://openrouter.ai/api/v1/chat/completions';
+  static const String _baseUrl =
+      'https://openrouter.ai/api/v1/chat/completions';
   static const String _model = 'meta-llama/llama-3.2-3b-instruct';
 
   static String get _apiKey => dotenv.env['OPENROUTER_API_KEY'] ?? '';
 
-  static const String _systemPrompt = '''Tu es l'Assistant Barista de MOCHA, le forum dédié aux boissons chaudes. Aide l'utilisateur à créer et enrichir son Topic.
+  static const String _systemPrompt =
+      '''Tu es l'Assistant Barista de MOCHA, le forum dédié aux boissons chaudes. Aide l'utilisateur à créer et enrichir son Topic.
     REGLE ABSOLUE : Tu ne parles QUE de boissons chaudes (café, thé, chocolat chaud, matcha, chai, tisanes, cappuccino, espresso, latte...). Si l'utilisateur sort du sujet, ramène-le vers les boissons chaudes avec humour.
     MISSIONS : Analyse le brouillon fourni. Crée des titres accrocheurs. Fournis infos, recettes ou conseils. Améliore les textes avec une touche "coffee culture".
     STYLE : Concis (mobile-friendly). Ton chaleureux et passionné. Reste TOUJOURS dans l'univers des boissons chaudes.
@@ -33,8 +32,15 @@ class OpenRouterService {
     required List<ChatMessage> conversationHistory,
     required bool includeContext,
   }) async {
+    print(
+      'API Key loaded: ${_apiKey.isEmpty ? "EMPTY" : "${_apiKey.substring(0, 15)}..."}',
+    );
+    print('API Key length: ${_apiKey.length}');
+
     if (_apiKey.isEmpty) {
-      throw Exception('Clé API OpenRouter non configurée. Ajoutez OPENROUTER_API_KEY dans votre fichier .env');
+      throw Exception(
+        'Clé API OpenRouter non configurée. Ajoutez OPENROUTER_API_KEY dans votre fichier .env',
+      );
     }
 
     // Construire le message utilisateur avec ou sans contexte
@@ -42,10 +48,11 @@ class OpenRouterService {
     if (includeContext) {
       final topicDraft = _buildTopicDraft(currentTitle, currentContent);
       if (topicDraft.isNotEmpty) {
-        finalUserMessage = '$userMessage\n\nCONTEXTE ACTUEL DU BROUILLON :\n$topicDraft';
+        finalUserMessage =
+            '$userMessage\n\nCONTEXTE ACTUEL DU BROUILLON :\n$topicDraft';
       }
     }
-    
+
     // Construire les messages pour l'API
     final messages = <Map<String, String>>[
       {'role': 'system', 'content': _systemPrompt},
@@ -59,12 +66,14 @@ class OpenRouterService {
         headers: {
           'Authorization': 'Bearer $_apiKey',
           'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://github.com/APlouzeau/mocha',
+          'X-Title': 'Mocha - Forum des boissons chaudes',
         },
-        body: jsonEncode({
-          'model': _model,
-          'messages': messages,
-        }),
+        body: jsonEncode({'model': _model, 'messages': messages}),
       );
+
+      print('OpenRouter Status: ${response.statusCode}');
+      print('OpenRouter Response: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -75,9 +84,13 @@ class OpenRouterService {
         throw Exception('Réponse invalide de l\'API');
       } else {
         final errorBody = jsonDecode(response.body);
-        throw Exception(errorBody['error']?['message'] ?? 'Erreur ${response.statusCode}');
+        print('Error details: $errorBody');
+        throw Exception(
+          errorBody['error']?['message'] ?? 'Erreur ${response.statusCode}',
+        );
       }
     } catch (e) {
+      print('Exception caught: $e');
       if (e is Exception) rethrow;
       throw Exception('Erreur de connexion: $e');
     }
@@ -94,4 +107,3 @@ class OpenRouterService {
     return parts.isEmpty ? '' : parts.join('\n');
   }
 }
-

@@ -14,6 +14,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nickNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordConfirmController = TextEditingController();
   bool _isLoading = false;
 
   @override
@@ -21,6 +22,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _nickNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordConfirmController.dispose();
     super.dispose();
   }
 
@@ -33,6 +35,7 @@ class _RegisterPageState extends State<RegisterPage> {
       nickName: _nickNameController.text.trim(),
       email: _emailController.text.trim(),
       password: _passwordController.text,
+      passwordConfirm: _passwordConfirmController.text,
     );
 
     setState(() => _isLoading = false);
@@ -125,6 +128,24 @@ class _RegisterPageState extends State<RegisterPage> {
                   }
                   if (value.length < 6) {
                     return 'Le mot de passe doit faire au moins 6 caractères';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _passwordConfirmController,
+                decoration: const InputDecoration(
+                  labelText: 'Confirmer le mot de passe',
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez confirmer le mot de passe';
+                  }
+                  if (value != _passwordController.text) {
+                    return 'Les mots de passe ne correspondent pas';
                   }
                   return null;
                 },
