@@ -2,11 +2,10 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
-import '../lib/database/db.dart';
-import '../lib/routes/auth_routes.dart';
-import '../lib/routes/article_routes.dart';
-import '../lib/routes/comment_routes.dart';
-
+import 'package:backend/database/db.dart';
+import 'package:backend/routes/auth_routes.dart';
+import 'package:backend/routes/article_routes.dart';
+import 'package:backend/routes/comment_routes.dart';
 
 void main() async {
   final db = Database();
@@ -22,18 +21,18 @@ void main() async {
       headers: {'Content-Type': 'application/json'},
     );
   });
-  
+
   router.mount('/auth', authRoutes(db).call);
   router.mount('/article', articleRoutes(db).call);
   router.mount('/comment', commentRoutes(db).call);
-  
+
   final handler = Pipeline()
-      .addMiddleware(logRequests()) 
+      .addMiddleware(logRequests())
       .addMiddleware(_corsHeaders())
       .addHandler(router.call);
-  
+
   final server = await io.serve(handler, InternetAddress.anyIPv4, port);
-  
+
   print('🚀 Serveur Mocha Backend lancé !');
   print('📡 Écoute sur: http://${server.address.host}:${server.port}');
   print('🧪 Test: http://localhost:$port/hello');
@@ -46,7 +45,7 @@ Middleware _corsHeaders() {
       if (request.method == 'OPTIONS') {
         return Response.ok('', headers: _corsHeadersMap);
       }
-      
+
       final response = await handler(request);
       return response.change(headers: _corsHeadersMap);
     };

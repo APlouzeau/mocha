@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'pages/home_page.dart';
 import 'pages/faq_page.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
 import 'pages/posts_page.dart';
 import 'pages/profile_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/create_post_page.dart';
+import 'helpers/auth_helper.dart';
 
 // import 'assets/mocha_logo_beige.png';
 
@@ -62,66 +63,136 @@ class MochaApp extends StatelessWidget {
   }
 }
 
-class _MochaRootState extends State<MochaRoot> {
+class _MochaRootState extends State<MochaRoot> with WidgetsBindingObserver {
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user_data');
-    setState(() {
-      _isLoggedIn = false;
-      _currentIndex = 0;
-    });
+    await AuthHelper.logout();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = false;
+        _isModerator = false;
+        _currentIndex = 0;
+      });
+    }
   }
 
   Future<void> _handleLoginResult() async {
     await _checkLoginStatus();
+    await _checkModeratorStatus();
     setState(() {});
   }
 
   bool _isLoggedIn = false;
+  bool _isModerator = false;
   int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkLoginStatus();
+    _checkModeratorStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Revérifier le statut quand l'app redevient active
+      _checkLoginStatus();
+      _checkModeratorStatus();
+    }
   }
 
   Future<void> _checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userJson = prefs.getString('user_data');
-    setState(() {
-      _isLoggedIn = userJson != null && userJson.isNotEmpty;
-    });
+    final isLogged = await AuthHelper.isLoggedIn();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = isLogged;
+      });
+    }
   }
 
-  List<Widget> get _pages => [
-    const MochaHomePage(),
-    const MochaFaqPage(),
-    if (_isLoggedIn) const CreatePostPage(),
-    const PostsPage(),
-  ];
+  Future<void> _checkModeratorStatus() async {
+    final isModerator = await AuthHelper.isModerator();
+    if (mounted) {
+      setState(() {
+        _isModerator = isModerator;
+      });
+    }
+  }
 
-  List<String> get _pageLabels => [
-    "Accueil",
-    "FAQ",
-    if (_isLoggedIn) "Nouveau Post",
-    "Posts",
-  ];
+  void _validateCurrentIndex() {
+    // S'assurer que _currentIndex est toujours dans la plage valide
+    final itemsCount = _getBottomNavItemsCount();
+    if (_currentIndex >= itemsCount) {
+      _currentIndex = 0;
+    }
+  }
+
+  int _getBottomNavItemsCount() {
+    // Compter les items réels du BottomNavigationBar
+    // Accueil, FAQ, Posts (toujours présents) = 3
+    // + Poster si modérateur ET connecté = 1
+    int count = 3;
+    if (_isLoggedIn && _isModerator) {
+      count++;
+    }
+    return count;
+  }
+
+  List<Widget> get _pages {
+    if (_isLoggedIn && _isModerator) {
+      return [
+        const MochaHomePage(),
+        const MochaFaqPage(),
+        const CreatePostPage(),
+        const PostsPage(),
+      ];
+    } else {
+      return [const MochaHomePage(), const MochaFaqPage(), const PostsPage()];
+    }
+  }
+
+  List<String> get _pageLabels {
+    if (_isLoggedIn && _isModerator) {
+      return ["Accueil", "FAQ", "Nouveau Post", "Posts"];
+    } else {
+      return ["Accueil", "FAQ", "Posts"];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Valider l'index avant chaque build
+    _validateCurrentIndex();
+
     return Scaffold(
       appBar: AppBar(
+        leading: InkWell(
+          onTap: () {
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: SvgPicture.asset(
+              'lib/assets/moca_vector.svg',
+              width: 60,
+              height: 60,
+              colorFilter: const ColorFilter.mode(Color(0xFFD2B48C), BlendMode.srcIn),
+            ),
+          ),
+        ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            // Image.asset(
-            //   'assets/mocha_logo_beige.png',
-            //   height: 32,
-            // ),
-            const SizedBox(width: 10),
-            const Text('Mocha'),
-          ],
+          children: const [Text('Mocha')],
         ),
         actions: [
           if (!_isLoggedIn)
@@ -144,19 +215,20 @@ class _MochaRootState extends State<MochaRoot> {
                 'Profil',
                 style: TextStyle(color: Color(0xFFD2B48C)),
               ),
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const ProfilPage()),
                 );
+                await _handleLoginResult();
               },
             ),
             TextButton(
+              onPressed: _logout,
               child: const Text(
                 'Déconnexion',
                 style: TextStyle(color: Color(0xFFD2B48C)),
               ),
-              onPressed: _logout,
             ),
           ],
         ],
@@ -211,7 +283,7 @@ class _MochaRootState extends State<MochaRoot> {
             icon: Icon(Icons.help_outline),
             label: 'FAQ',
           ),
-          if (_isLoggedIn)
+          if (_isLoggedIn && _isModerator)
             const BottomNavigationBarItem(
               icon: Icon(Icons.add),
               label: 'Poster',

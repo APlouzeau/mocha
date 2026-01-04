@@ -7,7 +7,7 @@ class MochaFaqPage extends StatelessWidget {
     {
       "question": "Comment créer un post ?",
       "answer":
-      "Pour créer un post, il te suffit d’être connecté au forum. Une fois sur la page principale, utilise le champ de texte situé en bas de l’écran pour écrire ton message, puis appuie sur le bouton “Envoyer”. "
+      "Pour créer un post, tu dois être connecté au forum et posséder le rôle de Modérateur ou Administrateur. Une fois sur la page principale, utilise le champ de texte situé en bas de l’écran pour écrire ton message, puis appuie sur le bouton “Envoyer”. "
           "Ton post apparaîtra immédiatement dans la section 'Posts' du forum.",
     },
     {

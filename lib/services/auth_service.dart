@@ -3,11 +3,11 @@ import 'package:http/http.dart' as http;
 import 'base_service.dart';
 
 class AuthService extends BaseService {
-
   static Future<Map<String, dynamic>> register({
     required String nickName,
     required String email,
     required String password,
+    required String passwordConfirm,
   }) async {
     try {
       final response = await http.post(
@@ -16,6 +16,7 @@ class AuthService extends BaseService {
           'nickName': nickName,
           'email': email,
           'password': password,
+          'passwordConfirm': passwordConfirm,
         }),
       );
 
@@ -35,10 +36,7 @@ class AuthService extends BaseService {
         };
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Erreur de connexion : $e',
-      };
+      return {'success': false, 'message': 'Erreur de connexion : $e'};
     }
   }
 
@@ -50,10 +48,7 @@ class AuthService extends BaseService {
       final response = await http.post(
         Uri.parse('${BaseService.baseUrl}/auth/login'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       final data = jsonDecode(response.body);
@@ -72,10 +67,84 @@ class AuthService extends BaseService {
         };
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Erreur de connexion : $e',
-      };
+      return {'success': false, 'message': 'Erreur de connexion : $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateProfile({
+    required String token,
+    String? nickName,
+    String? email,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${BaseService.baseUrl}/auth/update-profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          if (nickName != null) 'nickName': nickName,
+          if (email != null) 'email': email,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'user': data['user'],
+          'message': data['message'],
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['error'] ?? 'Une erreur est survenue',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur de connexion : $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updatePassword({
+    required String token,
+    String? oldPassword,
+    String? newPassword,
+    String? newPasswordConfirm,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${BaseService.baseUrl}/auth/update-password'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          if (oldPassword != null) 'oldPassword': oldPassword,
+          if (newPassword != null) 'newPassword': newPassword,
+          if (newPasswordConfirm != null)
+            'newPasswordConfirm': newPasswordConfirm,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'user': data['user'],
+          'message': data['message'],
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['error'] ?? 'Une erreur est survenue',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur de connexion : $e'};
     }
   }
 }

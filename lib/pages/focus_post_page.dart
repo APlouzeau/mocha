@@ -4,6 +4,7 @@ import '../models/user_model.dart';
 import '../services/article_service.dart';
 import '../services/comment_service.dart';
 import 'login_page.dart';
+import 'create_post_page.dart';
 
 class PostFocus extends StatefulWidget {
   final int postId;
@@ -25,12 +26,23 @@ class _PostFocusState extends State<PostFocus> {
   bool _sendingComment = false;
   UserModel? _currentUser;
   bool _showCommentComposer = false;
+  bool _isModeratorOrAdmin = false;
 
   @override
   void initState() {
     super.initState();
     _loadCurrentUser();
     _loadArticle();
+    _checkModeratorStatus();
+  }
+
+  Future<void> _checkModeratorStatus() async {
+    final isMod = await AuthHelper.isModerator();
+    if (mounted) {
+      setState(() {
+        _isModeratorOrAdmin = isMod;
+      });
+    }
   }
 
   @override
@@ -43,7 +55,7 @@ class _PostFocusState extends State<PostFocus> {
     final user = await AuthHelper.getUser();
     if (!mounted) return;
     setState(() {
-      _currentUser = user;
+      _currentUser = user != null ? UserModel.fromJson(user) : null;
     });
   }
 
@@ -82,9 +94,9 @@ class _PostFocusState extends State<PostFocus> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
     } finally {
       if (mounted) setState(() => _sendingComment = false);
     }
@@ -153,14 +165,13 @@ class _PostFocusState extends State<PostFocus> {
             const SizedBox(width: 8),
             ElevatedButton(
               onPressed: _sendingComment ? null : _submitComment,
-              child:
-                  _sendingComment
-                      ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                      : const Text('Envoyer'),
+              child: _sendingComment
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Envoyer'),
             ),
           ],
         ),
@@ -179,33 +190,16 @@ class _PostFocusState extends State<PostFocus> {
     try {
       final res = await ArticleService.getArticle(id: widget.postId);
       if (res['success'] == true) {
-        final Map<String, dynamic> articleMap = (res['article'] is Map)
-            ? Map<String, dynamic>.from(res['article'])
-            : {'title': null, 'content': null};
-        final title = articleMap['title']?.toString();
-        final content =
-            articleMap['content']?.toString() ??
-            articleMap['body']?.toString() ??
-            '';
-        // try extract author from common keys
-        String? author;
-        if (articleMap['author'] != null)
-          author = articleMap['author'].toString();
-        else if (articleMap['user'] is Map) {
-          author =
-              articleMap['user']['username']?.toString() ??
-              articleMap['user']['name']?.toString();
-        } else if (articleMap['user'] != null)
-          author = articleMap['user'].toString();
-        else if (articleMap['author_name'] != null)
-          author = articleMap['author_name'].toString();
+        final article = res['article'];
+        final title = article['title']?.toString();
+        final content = article['content']?.toString() ?? '';
+        final author = article['nick_name']?.toString();
 
         setState(() {
           _article = {'title': title, 'content': content};
           _authorName = author ?? 'Auteur inconnu';
         });
 
-        // load comments (don't block article display)
         _loadComments();
       } else {
         setState(() {
@@ -252,7 +246,6 @@ class _PostFocusState extends State<PostFocus> {
         _comments = comments;
       });
     } catch (e) {
-      // keep comments empty but don't fail the page
       debugPrint('Erreur chargement commentaires: $e');
     } finally {
       if (mounted) setState(() => _loadingComments = false);
@@ -318,7 +311,28 @@ class _PostFocusState extends State<PostFocus> {
     final title = _article?['title']?.toString() ?? 'Sans titre';
     final content = _article?['content']?.toString() ?? '';
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          if (_isModeratorOrAdmin)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Modifier le post',
+              padding: const EdgeInsets.only(right: 16.0),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CreatePostPage(articleId: widget.postId),
+                  ),
+                ).then((_) {
+                  // Recharger l'article après modification
+                  _loadArticle();
+                });
+              },
+            ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(

@@ -47,10 +47,35 @@ CREATE TABLE comments (
 -- Insertion des rôles par défaut
 INSERT INTO roles (role) VALUES 
    ('user'),
-   ('moderator'),
+   ('moderateur'),
    ('admin');
 
-   INSERT INTO articles (title, content, user_id, created_at)
+INSERT INTO users (nick_name, email, password_hash, role_id, created_at)
+VALUES 
+(
+  'admin',
+  'admin@admin.fr',
+  '$2a$12$fq5hDdOGjcDsOtliLZRy.e4yuh.6gd0HpchXLchVEszJXtTqYkXG2',
+  3,
+  '2026-01-04 12:39:47.150227'
+),
+(
+  'barista',
+  'barista@mocha.fr',
+  '$2a$12$fq5hDdOGjcDsOtliLZRy.e4yuh.6gd0HpchXLchVEszJXtTqYkXG2',
+  1,
+  NOW()
+),
+(
+  'coffee_lover',
+  'coffee@mocha.fr',
+  '$2a$12$fq5hDdOGjcDsOtliLZRy.e4yuh.6gd0HpchXLchVEszJXtTqYkXG2',
+  1,
+  NOW()
+);
+
+
+INSERT INTO articles (title, content, user_id, created_at)
 VALUES (
   'Les secrets du café',
   'Du grain à la tasse, chaque étape influence le goût du café : origine, torréfaction, mouture et extraction.',
@@ -85,38 +110,40 @@ VALUES (
   NOW()
 );
 
+
+
 INSERT INTO comments (comment, article_id, user_id, created_at)
 VALUES (
   'Un beau commentaire sur le café !',
-  8,
   1,
+  2,
   NOW()
 ),(
   'Un autre beau commentaire sur le café !',
-  8,
   1,
+  3,
   NOW()
 ),(
   'Un très beau commentaire sur le café !',
-  8,
+  2,
   1,
   NOW()
 ),
 (
-  'Un laid commentaire sur le café !',
-  8,
-  1,
+  'Un magnifique commentaire sur le café !',
+  3,
+  2,
   NOW()
 ),
 (
   'Le café est délicieux !',
-  10,
-  1,
+  4,
+  3,
   NOW()
 ),(
   'Rrrrr!',
-  10,
-  1,
+  5,
+  2,
   NOW()
 );
 
