@@ -70,4 +70,41 @@ class AuthService extends BaseService {
       return {'success': false, 'message': 'Erreur de connexion : $e'};
     }
   }
+
+  static Future<Map<String, dynamic>> updateProfile({
+    required String token,
+    String? nickName,
+    String? email,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${BaseService.baseUrl}/auth/update-profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          if (nickName != null) 'nickName': nickName,
+          if (email != null) 'email': email,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'user': data['user'],
+          'message': data['message'],
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['error'] ?? 'Une erreur est survenue',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erreur de connexion : $e'};
+    }
+  }
 }

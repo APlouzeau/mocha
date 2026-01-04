@@ -205,12 +205,81 @@ Router authRoutes(Database db) {
   });
 
   router.post('/logout', (Request request) async {
-    // Pour les JWT, le logout côté serveur est souvent une opération
-    // stateless. On peut simplement informer le client de supprimer le token.
     return Response.ok(
       jsonEncode({'message': 'Déconnexion réussie'}),
       headers: {'Content-Type': 'application/json'},
     );
+  });
+
+  router.put('/update-profile', (Request request) async {
+    try {
+      // Récupérer le token depuis le header Authorization
+      final authHeader = request.headers['authorization'];
+      if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+        return Response(
+          401,
+          body: jsonEncode({'error': 'Token manquant'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final token = authHeader.substring(7); // Enlever "Bearer "
+      final userId = JwtUtils.verifyToken(token);
+
+      if (userId == null) {
+        return Response(
+          401,
+          body: jsonEncode({'error': 'Token invalide ou expiré'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final payload = await request.readAsString();
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+
+      final nickName = data['nickName'] as String?;
+      final email = data['email'] as String?;
+
+      final conn = db.connection;
+
+      final updateFields = <String>[];
+      final parameters = <dynamic>[];
+      var paramIndex = 1;
+
+      if (nickName != null) {
+        updateFields.add('nick_name = \$${paramIndex++}');
+        parameters.add(nickName);
+      }
+      if (email != null) {
+        updateFields.add('email = \$${paramIndex++}');
+        parameters.add(email);
+      }
+
+      if (updateFields.isEmpty) {
+        return Response.badRequest(
+          body: jsonEncode({'error': 'Aucun champ à mettre à jour'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      parameters.add(userId);
+
+      final updateQuery =
+          'UPDATE users SET ${updateFields.join(', ')} WHERE id = \$${paramIndex}';
+
+      print(userId);
+      await conn.execute(updateQuery, parameters: parameters);
+
+      return Response.ok(
+        jsonEncode({'message': 'Profil mis à jour avec succès'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Erreur lors de la mise à jour du profil'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
   });
 
   return router;
