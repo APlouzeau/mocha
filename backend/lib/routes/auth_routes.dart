@@ -213,7 +213,6 @@ Router authRoutes(Database db) {
 
   router.put('/update-profile', (Request request) async {
     try {
-      // Récupérer le token depuis le header Authorization
       final authHeader = request.headers['authorization'];
       if (authHeader == null || !authHeader.startsWith('Bearer ')) {
         return Response(
@@ -277,6 +276,113 @@ Router authRoutes(Database db) {
     } catch (e) {
       return Response.internalServerError(
         body: jsonEncode({'error': 'Erreur lors de la mise à jour du profil'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  });
+
+  router.put('/update-password', (Request request) async {
+    try {
+      final authHeader = request.headers['authorization'];
+      if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+        return Response(
+          401,
+          body: jsonEncode({'error': 'Token manquant'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+      final token = authHeader.substring(7);
+      final userId = JwtUtils.verifyToken(token);
+
+      if (userId == null) {
+        return Response(
+          401,
+          body: jsonEncode({'error': 'Token invalide ou expiré'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final payload = await request.readAsString();
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+
+      final oldPassword = data['oldPassword'] as String?;
+      final newPassword = data['newPassword'] as String?;
+      final newPasswordConfirm = data['newPasswordConfirm'] as String?;
+
+      if (!CheckDataUtils.isValidFields([
+        oldPassword,
+        newPassword,
+        newPasswordConfirm,
+      ])) {
+        return Response.badRequest(
+          body: jsonEncode({'error': 'Tous les champs sont requis.'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      if (!PasswordUtils.passwordLengthValid(newPassword!)) {
+        return Response(
+          409,
+          body: jsonEncode({
+            'error': 'Le mot de passe doit contenir au moins 8 caractères.',
+          }),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      if (!PasswordUtils.passwordConfirmationValid(
+        newPassword,
+        newPasswordConfirm!,
+      )) {
+        return Response(
+          409,
+          body: jsonEncode({
+            'error': 'Les mots de passe ne correspondent pas.',
+          }),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final conn = db.connection;
+      final passwordUsermatch = await conn.execute(
+        'SELECT password_hash FROM users WHERE id = \$1',
+        parameters: [userId],
+      );
+
+      if (passwordUsermatch.isEmpty) {
+        return Response(
+          404,
+          body: jsonEncode({'error': 'Utilisateur non trouvé'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final currentHashedPassword = passwordUsermatch.first[0] as String;
+
+      if (!PasswordUtils.verifyPassword(oldPassword!, currentHashedPassword)) {
+        return Response(
+          409,
+          body: jsonEncode({'error': 'Ancien mot de passe incorrect.'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final newHashedPassword = PasswordUtils.hashPassword(newPassword!);
+
+      await conn.execute(
+        'UPDATE users SET password_hash = \$1 WHERE id = \$2',
+        parameters: [newHashedPassword, userId],
+      );
+
+      return Response.ok(
+        jsonEncode({'message': 'Mot de passe mis à jour avec succès'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({
+          'error': 'Erreur lors de la mise à jour du mot de passe',
+        }),
         headers: {'Content-Type': 'application/json'},
       );
     }

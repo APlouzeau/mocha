@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
 import 'package:mocha/services/auth_service.dart';
-import 'dart:convert';
 import '../helpers/auth_helper.dart';
 
 class ProfilPage extends StatefulWidget {
@@ -328,6 +325,7 @@ class _ProfilPageState extends State<ProfilPage> {
                 Navigator.pop(context, {
                   'oldPassword': oldPasswordController.text,
                   'newPassword': newPasswordController.text,
+                  'newPasswordConfirm': confirmPasswordController.text,
                 });
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -344,7 +342,11 @@ class _ProfilPageState extends State<ProfilPage> {
     );
 
     if (result != null) {
-      await _updatePassword(result['oldPassword']!, result['newPassword']!);
+      await _updatePassword(
+        result['oldPassword']!,
+        result['newPassword']!,
+        result['newPasswordConfirm']!,
+      );
     }
   }
 
@@ -393,32 +395,31 @@ class _ProfilPageState extends State<ProfilPage> {
   }
 
   // Appeler l'API pour changer le mot de passe
-  Future<void> _updatePassword(String oldPassword, String newPassword) async {
+  Future<void> _updatePassword(
+    String oldPassword,
+    String newPassword,
+    String newPasswordConfirm,
+  ) async {
     final token = await AuthHelper.getToken();
     if (token == null) return;
 
     try {
-      final response = await http.put(
-        Uri.parse('${dotenv.env['API_URL']}/users/me/password'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'oldPassword': oldPassword,
-          'newPassword': newPassword,
-        }),
+      final response = await AuthService.updatePassword(
+        token: token,
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+        newPasswordConfirm: newPasswordConfirm,
       );
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
+      if (response['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Mot de passe changé avec succès')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${response.statusCode}')),
+          SnackBar(content: Text('Erreur: ${response['message']}')),
         );
       }
     } catch (e) {
