@@ -7,7 +7,7 @@ Middleware requireAuth() {
   return (Handler handler) {
     return (Request request) async {
       final authHeader = request.headers['authorization'];
-      
+
       if (authHeader == null || !authHeader.startsWith('Bearer ')) {
         return Response(
           401,
@@ -17,7 +17,7 @@ Middleware requireAuth() {
       }
 
       final token = authHeader.substring(7);
-      final jwt = JwtUtils.verifyToken(token);
+      final jwt = JwtUtils.verifyTokenFull(token);
 
       if (jwt == null) {
         return Response(
@@ -47,7 +47,7 @@ Middleware requireModeratorOrAdmin() {
   return (Handler handler) {
     return (Request request) async {
       final roleIdStr = request.headers['x-user-role-id'];
-      
+
       if (roleIdStr == null) {
         return Response(
           403,
@@ -57,12 +57,13 @@ Middleware requireModeratorOrAdmin() {
       }
 
       final roleId = int.tryParse(roleIdStr);
-      
+
       if (roleId == null || (roleId != 2 && roleId != 3)) {
         return Response(
           403,
           body: jsonEncode({
-            'error': 'Accès refusé : seuls les modérateurs et administrateurs peuvent effectuer cette action'
+            'error':
+                'Accès refusé : seuls les modérateurs et administrateurs peuvent effectuer cette action',
           }),
           headers: {'Content-Type': 'application/json'},
         );
@@ -72,4 +73,3 @@ Middleware requireModeratorOrAdmin() {
     };
   };
 }
-

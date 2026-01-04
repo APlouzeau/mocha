@@ -26,4 +26,14 @@ class JwtUtils {
       return null;
     }
   }
+
+  static JWT? verifyTokenFull(String token) {
+    final env = DotEnv(includePlatformEnvironment: true)..load();
+    final secret = env['JWT_SECRET'] ?? 'default_secret';
+    try {
+      return JWT.verify(token, SecretKey(secret));
+    } catch (e) {
+      return null;
+    }
+  }
 }
