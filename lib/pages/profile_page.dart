@@ -26,8 +26,12 @@ class _ProfilPageState extends State<ProfilPage> {
 
     if (!mounted) return;
 
+    // Si pas d'utilisateur, l'onglet ne devrait pas être visible
+    // mais on affiche quand même un message au cas où
     if (user == null) {
-      Navigator.pushReplacementNamed(context, '/login');
+      setState(() {
+        isLoading = false;
+      });
       return;
     }
 
@@ -82,20 +86,91 @@ class _ProfilPageState extends State<ProfilPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
+      appBar: AppBar(title: const Text('Mon Profil')),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Center(
+          : (nickName == null && email == null)
+          ? const Center(
+              child: Text(
+                'Impossible de charger les données du profil',
+                style: TextStyle(color: Colors.grey),
+              ),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(24.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Pseudo : ${nickName ?? "-"}'),
-                  Text('Email : ${email ?? "-"}'),
-                  Text('Role : ${role ?? "-"}'),
-                  if (createdAt != null) Text('Créé le : $createdAt'),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: const Color(0xFF6D4C41),
+                      child: Text(
+                        nickName != null && nickName!.isNotEmpty
+                            ? nickName![0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                          fontSize: 40,
+                          color: Color(0xFFD2B48C),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  _buildInfoCard('Pseudo', nickName ?? '-'),
+                  const SizedBox(height: 16),
+                  _buildInfoCard('Email', email ?? '-'),
+                  const SizedBox(height: 16),
+                  _buildInfoCard('Rôle', role ?? '-'),
+                  if (createdAt != null) ...[
+                    const SizedBox(height: 16),
+                    _buildInfoCard('Membre depuis', createdAt!),
+                  ],
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildInfoCard(String label, String value) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Color(0xFF6D4C41),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

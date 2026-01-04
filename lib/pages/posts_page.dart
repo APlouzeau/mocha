@@ -44,8 +44,9 @@ class _PostsPageState extends State<PostsPage> {
     if (item == null) return null;
     if (item is int) return item;
     try {
-      if (item is Map)
+      if (item is Map) {
         return item['id'] is int ? item['id'] : int.tryParse('${item['id']}');
+      }
       if (item is String) return int.tryParse(item);
       // If it's a model with an id getter
       final v = (item as dynamic).id;

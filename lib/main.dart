@@ -62,14 +62,16 @@ class MochaApp extends StatelessWidget {
   }
 }
 
-class _MochaRootState extends State<MochaRoot> {
+class _MochaRootState extends State<MochaRoot> with WidgetsBindingObserver {
   Future<void> _logout() async {
     await AuthHelper.logout();
-    setState(() {
-      _isLoggedIn = false;
-      _isModerator = false;
-      _currentIndex = 0;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = false;
+        _isModerator = false;
+        _currentIndex = 0;
+      });
+    }
   }
 
   Future<void> _handleLoginResult() async {
@@ -85,40 +87,94 @@ class _MochaRootState extends State<MochaRoot> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkLoginStatus();
     _checkModeratorStatus();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Revérifier le statut quand l'app redevient active
+      _checkLoginStatus();
+      _checkModeratorStatus();
+    }
+  }
+
   Future<void> _checkLoginStatus() async {
     final isLogged = await AuthHelper.isLoggedIn();
-    setState(() {
-      _isLoggedIn = isLogged;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = isLogged;
+      });
+    }
   }
 
   Future<void> _checkModeratorStatus() async {
     final isModerator = await AuthHelper.isModerator();
-    setState(() {
-      _isModerator = isModerator;
-    });
+    if (mounted) {
+      setState(() {
+        _isModerator = isModerator;
+      });
+    }
   }
 
-  List<Widget> get _pages => [
-    const MochaHomePage(),
-    const MochaFaqPage(),
-    if (_isModerator) const CreatePostPage(),
-    const PostsPage(),
-  ];
+  void _validateCurrentIndex() {
+    // S'assurer que _currentIndex est toujours dans la plage valide
+    final itemsCount = _getBottomNavItemsCount();
+    if (_currentIndex >= itemsCount) {
+      _currentIndex = 0;
+    }
+  }
 
-  List<String> get _pageLabels => [
-    "Accueil",
-    "FAQ",
-    if (_isModerator) "Nouveau Post",
-    "Posts",
-  ];
+  int _getBottomNavItemsCount() {
+    // Compter les items réels du BottomNavigationBar
+    // Accueil, FAQ, Posts (toujours présents) = 3
+    // + Poster si modérateur ET connecté = 1
+    int count = 3;
+    if (_isLoggedIn && _isModerator) {
+      count++;
+    }
+    return count;
+  }
+
+  List<Widget> get _pages {
+    if (_isLoggedIn && _isModerator) {
+      return [
+        const MochaHomePage(),
+        const MochaFaqPage(),
+        const CreatePostPage(),
+        const PostsPage(),
+      ];
+    } else {
+      return [const MochaHomePage(), const MochaFaqPage(), const PostsPage()];
+    }
+  }
+
+  List<String> get _pageLabels {
+    if (_isLoggedIn && _isModerator) {
+      return ["Accueil", "FAQ", "Nouveau Post", "Posts"];
+    } else {
+      return ["Accueil", "FAQ", "Posts"];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Valider l'index avant chaque build
+    _validateCurrentIndex();
+
+    print(
+      'DEBUG build: _isLoggedIn=$_isLoggedIn, _isModerator=$_isModerator',
+    ); // DEBUG
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -146,19 +202,20 @@ class _MochaRootState extends State<MochaRoot> {
                 'Profil',
                 style: TextStyle(color: Color(0xFFD2B48C)),
               ),
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const ProfilPage()),
                 );
+                await _handleLoginResult();
               },
             ),
             TextButton(
+              onPressed: _logout,
               child: const Text(
                 'Déconnexion',
                 style: TextStyle(color: Color(0xFFD2B48C)),
               ),
-              onPressed: _logout,
             ),
           ],
         ],

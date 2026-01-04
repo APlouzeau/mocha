@@ -46,7 +46,7 @@ class AuthHelper {
   static Future<bool> isModerator() async {
     final user = await getUser();
     final role = user?['role'] as String?;
-    if (role == 'moderator' || role == 'admin') return true;
+    if (role == 'moderateur' || role == 'admin') return true;
     return false;
   }
 }

@@ -15,9 +15,9 @@ Router articleRoutes(Database db) {
 
       final title = data['title'] as String?;
       final content = data['content'] as String?;
-      final user_id = data['user_id'] as int?;
+      final userId = data['user_id'] as int?;
 
-      if (!CheckDataUtils.isValidFields([title, content, user_id])) {
+      if (!CheckDataUtils.isValidFields([title, content, userId])) {
         return Response.badRequest(
           body: jsonEncode({'error': 'Tous les champs sont requis.'}),
           headers: {'Content-Type': 'application/json'},
@@ -40,7 +40,7 @@ Router articleRoutes(Database db) {
 
       final result = await conn.execute(
         'INSERT INTO articles (title, content, user_id) VALUES (\$1, \$2, \$3) RETURNING id, title, content, user_id, created_at',
-        parameters: [title, content, user_id],
+        parameters: [title, content, userId],
       );
 
       final articleRow = result.first;
