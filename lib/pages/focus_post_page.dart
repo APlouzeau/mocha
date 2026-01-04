@@ -4,6 +4,7 @@ import '../models/user_model.dart';
 import '../services/article_service.dart';
 import '../services/comment_service.dart';
 import 'login_page.dart';
+import 'create_post_page.dart';
 
 class PostFocus extends StatefulWidget {
   final int postId;
@@ -25,12 +26,23 @@ class _PostFocusState extends State<PostFocus> {
   bool _sendingComment = false;
   UserModel? _currentUser;
   bool _showCommentComposer = false;
+  bool _isModeratorOrAdmin = false;
 
   @override
   void initState() {
     super.initState();
     _loadCurrentUser();
     _loadArticle();
+    _checkModeratorStatus();
+  }
+
+  Future<void> _checkModeratorStatus() async {
+    final isMod = await AuthHelper.isModerator();
+    if (mounted) {
+      setState(() {
+        _isModeratorOrAdmin = isMod;
+      });
+    }
   }
 
   @override
@@ -299,7 +311,28 @@ class _PostFocusState extends State<PostFocus> {
     final title = _article?['title']?.toString() ?? 'Sans titre';
     final content = _article?['content']?.toString() ?? '';
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          if (_isModeratorOrAdmin)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              tooltip: 'Modifier le post',
+              padding: const EdgeInsets.only(right: 16.0),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CreatePostPage(articleId: widget.postId),
+                  ),
+                ).then((_) {
+                  // Recharger l'article après modification
+                  _loadArticle();
+                });
+              },
+            ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
