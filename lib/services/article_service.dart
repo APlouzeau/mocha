@@ -40,6 +40,47 @@ class ArticleService {
     }
   }
 
+  static Future<Map<String, dynamic>> updateArticle({
+    required int id,
+    required String title,
+    required String content,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${BaseService.baseUrl}/article/update'),
+        headers: await BaseService.authHeaders()
+          ..addAll({'Content-Type': 'application/json'}),
+        body: jsonEncode({
+          'id': id,
+          'title': title,
+          'content': content,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'data': data};
+      }
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw UnauthorizedException();
+      }
+
+      return {
+        'success': false,
+        'message': data['error'] ?? 'Erreur lors de la modification',
+      };
+    } on UnauthorizedException {
+      rethrow;
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Erreur de connexion au serveur : $e',
+      };
+    }
+  }
+
   static Future<Map<String, dynamic>> getArticle({required int id}) async {
     try {
       final response = await http.post(
