@@ -171,10 +171,6 @@ class _MochaRootState extends State<MochaRoot> with WidgetsBindingObserver {
     // Valider l'index avant chaque build
     _validateCurrentIndex();
 
-    print(
-      'DEBUG build: _isLoggedIn=$_isLoggedIn, _isModerator=$_isModerator',
-    ); // DEBUG
-
     return Scaffold(
       appBar: AppBar(
         title: Row(

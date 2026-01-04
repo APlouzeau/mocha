@@ -367,7 +367,7 @@ Router authRoutes(Database db) {
         );
       }
 
-      final newHashedPassword = PasswordUtils.hashPassword(newPassword!);
+      final newHashedPassword = PasswordUtils.hashPassword(newPassword);
 
       await conn.execute(
         'UPDATE users SET password_hash = \$1 WHERE id = \$2',
